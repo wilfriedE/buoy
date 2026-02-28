@@ -41,4 +41,4 @@ Edit `ansible/group_vars/all.yml` to set hostname, WiFi SSID/passphrase, ROS dom
 
 ## License
 
-Use and modify as needed for your project.
+MIT License. See [LICENSE](LICENSE) for details.
