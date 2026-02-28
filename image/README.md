@@ -45,7 +45,35 @@ Do this once on a machine or Pi that has internet. To build **without a Raspberr
 
 ### Option B: Build on a PC with Docker (easiest – no Pi required)
 
-If you have **Docker Desktop**: download the base image with **`uv run download-base`** (saves to `image/base/`), then from the repo root run **`./image/build-with-docker.sh`**. Or put a Raspberry Pi OS 64-bit Lite `.img` or `.img.xz` in `image/base/` or `image/` manually. The script **automatically expands the image by 4 GiB** and grows the root partition, so you do **not** need Raspberry Pi Imager to increase storage. Output: **`build/maser_buoy_build.img`**. **WiFi uses native hostapd + dnsmasq** on the host (RaspAP Docker fails on Pi due to driver limitations). The command center and ROS run on the host/Docker. ROS Docker images are built during the image build and baked into `docker_images.tar` for offline first boot. If the script fails with "Could not create loop device" (e.g. on Mac), use Linux/WSL2 or see **[BUILD-QEMU.md](BUILD-QEMU.md)** for manual steps.
+**Prerequisites:** [UV](https://docs.astral.sh/uv/) (Python package manager) and [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+
+Install UV (one-time):
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# macOS (Homebrew)
+brew install uv
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then from the repo root:
+
+**One command (recommended):**
+```bash
+uv run build
+```
+Downloads the base image if needed, builds the Maser Buoy image, and creates the Pi Imager manifest. Use `uv run build --legacy` for Bookworm (Legacy) instead of Trixie.
+
+**Or step by step:**
+- `uv run download-base` – download Raspberry Pi OS Lite 64-bit to `image/base/`
+- `uv run build-image` – build the image (or `./image/build-with-docker.sh`)
+- `uv run create-manifest` – create Pi Imager manifest
+
+The build **automatically expands the image by 4 GiB** and grows the root partition. Output: **`build/maser_buoy_build.img`** and **`build/maser_buoy.rpi-imager-manifest`**. **WiFi uses native hostapd + dnsmasq** on the host (RaspAP Docker fails on Pi due to driver limitations). The command center and ROS run on the host/Docker. ROS Docker images are built during the image build and baked into `docker_images.tar` for offline first boot. If the script fails with "Could not create loop device" (e.g. on Mac), use Linux/WSL2 or see **[BUILD-QEMU.md](BUILD-QEMU.md)** for manual steps.
 
 **Expected build output:** You may see `failed to start daemon: Devices cgroup isn't mounted` and `Cannot connect to the Docker daemon`. These are expected when building inside Docker/QEMU—the chroot lacks full cgroup support. WiFi uses native hostapd (not Docker); on first boot the playbook configures hostapd and dnsmasq on the host.
 
@@ -55,7 +83,7 @@ If you have **Docker Desktop**: download the base image with **`uv run download-
 
 When you use **Use custom** and select the image file directly, Pi Imager does not show the settings gear because it has no metadata for custom images. To enable hostname/SSH customization (skip WiFi):
 
-1. Run `./image/create-pi-imager-manifest.sh` (optionally with the image path)
+1. Run `uv run create-manifest` (or `./image/create-pi-imager-manifest.sh` with optional image path)
 2. In Pi Imager: **App Options** (gear) → **Content Repository** → **EDIT** → **Use custom file** → select `build/maser_buoy.rpi-imager-manifest` → **APPLY & RESTART**
 3. The Maser Buoy image will appear in the OS list with the settings gear enabled
 

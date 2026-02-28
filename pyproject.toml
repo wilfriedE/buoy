@@ -10,6 +10,9 @@ dependencies = [
 
 [project.scripts]
 download-base = "image.download_base:main"
+build-image = "image.build_image:main"
+create-manifest = "image.create_manifest:main"
+build = "image.build:main"
 
 [build-system]
 requires = ["hatchling"]
