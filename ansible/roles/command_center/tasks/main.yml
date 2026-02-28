@@ -52,8 +52,6 @@
   ansible.builtin.command:
     cmd: pnpm install
     chdir: "{{ buoy_root }}/command_center"
-  environment:
-    NODE_ENV: production
   changed_when: true
   when: not offline_first_boot | default(false) | bool
 
