@@ -1,0 +1,26 @@
+# Maser Buoy hub – shared variables
+
+# Offline first boot: set to true when the Pi has no internet (e.g. field deployment).
+# Image build must be done once WITH network and offline_first_boot: false so Docker, RaspAP, images, and node_modules are installed; then image the SD. Baked image then boots with offline_first_boot: true.
+offline_first_boot: true
+
+maser_buoy_hostname: maser-buoy
+buoy_domain: buoy
+# WiFi (RaspAP Docker)
+wifi_ssid: MaserBuoy
+wifi_passphrase: ChangeMe
+wifi_country: US
+wifi_interface: wlan0
+# Upstream interface for RaspAP Docker (WiFi clients → LAN/internet)
+raspap_upstream_interface: eth0
+# ROS 2
+ros_domain_id: "0"
+ros_bridge_port: 9090
+ros_discovery_server_port: 11811
+use_discovery_server: false
+# Command center
+command_center_port: 8080
+# Captive portal: when true, install Nodogsplash so new WiFi clients must pass a splash (command center) before full access. Set false for normal WiFi as soon as they connect.
+captive_portal_enable: false
+# Paths
+maser_buoy_root: /opt/maser_buoy

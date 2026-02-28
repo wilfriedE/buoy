@@ -1,0 +1,8 @@
+# ROS 2 Jazzy + rosbridge_suite for Maser Buoy (arm64)
+FROM ros:jazzy-ros-base
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-jazzy-rosbridge-suite \
+    && rm -rf /var/lib/apt/lists/*
+COPY rosbridge_launch.sh /rosbridge_launch.sh
+RUN chmod +x /rosbridge_launch.sh
+ENTRYPOINT ["/rosbridge_launch.sh"]

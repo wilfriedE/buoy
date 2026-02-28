@@ -1,0 +1,15 @@
+---
+# After the playbook has run (triggered by first-boot systemd unit), disable the unit so it does not run again on next boot.
+# Skip during Docker image build—the unit is installed by the build script after the playbook.
+- name: Disable first-boot service
+  ansible.builtin.systemd:
+    name: maser-buoy-firstboot
+    enabled: false
+    state: stopped
+  when: not docker_image_build | default(false) | bool
+  ignore_errors: true
+
+- name: Mark hub as configured
+  ansible.builtin.file:
+    path: /etc/maser_buoy_configured
+    state: touch

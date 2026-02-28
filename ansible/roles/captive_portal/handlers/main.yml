@@ -1,0 +1,6 @@
+---
+- name: Restart Nodogsplash
+  ansible.builtin.service:
+    name: nodogsplash
+    state: restarted
+  ignore_errors: true

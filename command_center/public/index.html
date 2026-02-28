@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maser Buoy – Command Center</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a2e; color: #eee; }
+    h1 { margin-top: 0; }
+    .section { margin-bottom: 1.5rem; }
+    .devices { display: grid; gap: 0.5rem; }
+    .device { background: #16213e; padding: 0.5rem 0.75rem; border-radius: 6px; font-family: monospace; }
+    .ros-url { font-size: 0.9rem; color: #7f8c8d; margin-top: 1rem; }
+    a { color: #74b9ff; }
+  </style>
+</head>
+<body>
+  <h1>Maser Buoy – Command Center</h1>
+  <p>Hub for ROS 2 devices on this network. Connect to <code>maser.buoy</code> for the hub.</p>
+
+  <div class="section">
+    <h2>Connected devices</h2>
+    <div id="devices" class="devices">Loading…</div>
+  </div>
+
+  <div class="section">
+    <h2>ROS 2 topic graph</h2>
+    <p>Open <a href="https://studio.foxglove.dev" target="_blank" rel="noopener">Foxglove Studio</a> and connect to <strong>Rosbridge</strong> with URL:</p>
+    <p class="ros-url"><code>ws://maser.buoy:9090</code> (or <code>ws://&lt;this-host-ip&gt;:9090</code>)</p>
+    <p>Or use the code examples in <a href="/docs/ros-hub.md">ROS Hub docs</a> (Python, JavaScript, TypeScript).</p>
+  </div>
+
+  <script>
+    fetch('/api/devices')
+      .then(r => r.json())
+      .then(({ devices }) => {
+        const el = document.getElementById('devices');
+        if (devices.length === 0) {
+          el.textContent = 'No DHCP leases found. Devices will appear when connected to this WiFi.';
+          return;
+        }
+        el.innerHTML = devices.map(d =>
+          `<div class="device">${d.hostname || d.ip} — ${d.ip} (${d.mac})</div>`
+        ).join('');
+      })
+      .catch(() => {
+        document.getElementById('devices').textContent = 'Could not load devices.';
+      });
+  </script>
+</body>
+</html>

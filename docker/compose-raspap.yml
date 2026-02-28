@@ -1,0 +1,22 @@
+# RaspAP as Docker (ghcr.io/raspap/raspap-docker) – host network, ARM cgroups
+# .buoy DNS is mounted from /opt/maser_buoy/config/dnsmasq.d
+services:
+  raspap:
+    image: ghcr.io/raspap/raspap-docker:latest
+    container_name: raspap
+    privileged: true
+    network_mode: host
+    cgroupns: host
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - /opt/maser_buoy/config/dnsmasq.d/091_buoy.conf:/etc/dnsmasq.d/091_buoy.conf:ro
+    environment:
+      RASPAP_SSID: "${RASPAP_SSID:-MaserBuoy}"
+      RASPAP_SSID_PASS: "${RASPAP_SSID_PASS:-ChangeMe}"
+      RASPAP_COUNTRY: "${RASPAP_COUNTRY:-US}"
+      RASPAP_WEBGUI_USER: "${RASPAP_WEBGUI_USER:-admin}"
+      RASPAP_WEBGUI_PASS: "${RASPAP_WEBGUI_PASS:-secret}"
+      RASPAP_WEBGUI_PORT: "${RASPAP_WEBGUI_PORT:-80}"
+    restart: unless-stopped

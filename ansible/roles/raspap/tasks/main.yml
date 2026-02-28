@@ -1,0 +1,47 @@
+---
+# RaspAP via Docker (ghcr.io/raspap/raspap-docker). Image can be pre-baked so first boot needs no network.
+
+- name: Ensure RaspAP dnsmasq mount dir exists
+  ansible.builtin.file:
+    path: /opt/maser_buoy/config/dnsmasq.d
+    state: directory
+    mode: "0755"
+
+- name: Deploy RaspAP Docker env file from group_vars
+  ansible.builtin.template:
+    src: env-raspap.j2
+    dest: /opt/maser_buoy/docker/.env.raspap
+    mode: "0644"
+
+- name: Stat RaspAP image tarball (for offline load)
+  ansible.builtin.stat:
+    path: /opt/maser_buoy/docker/raspap-docker.tar
+  register: raspap_tar_stat
+
+- name: Load RaspAP Docker image from tarball (offline first boot)
+  ansible.builtin.shell: docker load -i /opt/maser_buoy/docker/raspap-docker.tar
+  when:
+    - offline_first_boot | default(false) | bool
+    - raspap_tar_stat.stat.exists | default(false) | bool
+
+- name: Pull RaspAP Docker image (when online)
+  ansible.builtin.command:
+    cmd: docker pull ghcr.io/raspap/raspap-docker:latest
+  when:
+    - not offline_first_boot | default(false) | bool
+    - not docker_image_build | default(false) | bool
+
+- name: Add iptables rules for RaspAP Docker (WiFi clients to LAN/internet)
+  ansible.builtin.shell: |
+    iptables -C DOCKER-USER -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT 2>/dev/null || iptables -I DOCKER-USER -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT
+    iptables -t nat -C POSTROUTING -o {{ raspap_upstream_interface }} -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -o {{ raspap_upstream_interface }} -j MASQUERADE
+    iptables -C FORWARD -i {{ raspap_upstream_interface }} -o {{ wifi_interface }} -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || iptables -A FORWARD -i {{ raspap_upstream_interface }} -o {{ wifi_interface }} -m state --state RELATED,ESTABLISHED -j ACCEPT
+    iptables -C FORWARD -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT 2>/dev/null || iptables -A FORWARD -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT
+  when: not docker_image_build | default(false) | bool
+  changed_when: false
+
+- name: Start RaspAP container with compose
+  ansible.builtin.shell: |
+    cd /opt/maser_buoy/docker
+    docker compose --env-file .env.raspap -f compose-raspap.yml up -d
+  when: not docker_image_build | default(false) | bool

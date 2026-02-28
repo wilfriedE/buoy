@@ -1,0 +1,35 @@
+---
+- name: Enable SSH for remote access (e.g. over Ethernet)
+  ansible.builtin.service:
+    name: ssh
+    state: started
+    enabled: true
+  ignore_errors: true
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ maser_buoy_hostname }}"
+
+- name: Ensure hostname in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s+'
+    line: "127.0.1.1 {{ maser_buoy_hostname }}"
+  register: hosts_edit
+  changed_when: hosts_edit.changed
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: not offline_first_boot | default(false) | bool
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - python3-pip
+    state: present
+  when: not offline_first_boot | default(false) | bool

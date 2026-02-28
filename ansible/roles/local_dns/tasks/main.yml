@@ -1,0 +1,29 @@
+---
+# .buoy TLD and maser.buoy for RaspAP Docker's dnsmasq (and legacy host dnsmasq if present)
+- name: Ensure dnsmasq config directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /etc/dnsmasq.d
+    - /opt/maser_buoy/config/dnsmasq.d
+
+- name: Deploy .buoy domain dnsmasq config (host, legacy)
+  ansible.builtin.template:
+    src: buoy.conf.j2
+    dest: /etc/dnsmasq.d/maser_buoy_buoy.conf
+    mode: "0644"
+
+- name: Deploy .buoy domain dnsmasq config (RaspAP Docker mount)
+  ansible.builtin.template:
+    src: buoy.conf.j2
+    dest: /opt/maser_buoy/config/dnsmasq.d/091_buoy.conf
+    mode: "0644"
+
+- name: Restart host dnsmasq if present (legacy; skip in Docker image build—no host dnsmasq)
+  ansible.builtin.service:
+    name: dnsmasq
+    state: restarted
+  when: not docker_image_build | default(false) | bool
+  ignore_errors: true

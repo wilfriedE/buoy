@@ -1,0 +1,16 @@
+[Unit]
+Description=Maser Buoy Command Center
+After=network.target docker.service
+
+[Service]
+Type=simple
+WorkingDirectory={{ maser_buoy_root }}/command_center
+Environment=COMMAND_CENTER_PORT={{ command_center_port }}
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node server.js
+Restart=unless-stopped
+# Read DHCP leases (often root-only)
+User=root
+
+[Install]
+WantedBy=multi-user.target

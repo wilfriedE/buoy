@@ -1,0 +1,43 @@
+---
+- name: Install Node.js and npm (requires network)
+  ansible.builtin.apt:
+    name:
+      - nodejs
+      - npm
+    state: present
+    update_cache: true
+  when: not offline_first_boot | default(false) | bool
+
+- name: Create command center directory
+  ansible.builtin.file:
+    path: "{{ maser_buoy_root }}/command_center"
+    state: directory
+    mode: "0755"
+
+- name: Copy command center app
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../command_center/"
+    dest: "{{ maser_buoy_root }}/command_center"
+    mode: "0644"
+
+- name: Install command center npm dependencies (requires network; skip when offline_first_boot)
+  ansible.builtin.command:
+    cmd: npm install
+    chdir: "{{ maser_buoy_root }}/command_center"
+  environment:
+    NODE_ENV: production
+  changed_when: true
+  when: not offline_first_boot | default(false) | bool
+
+- name: Deploy command center systemd unit
+  ansible.builtin.template:
+    src: maser-buoy-command-center.service.j2
+    dest: /etc/systemd/system/maser-buoy-command-center.service
+    mode: "0644"
+
+- name: Start and enable command center service
+  ansible.builtin.systemd:
+    name: maser-buoy-command-center
+    state: started
+    enabled: true
+    daemon_reload: true

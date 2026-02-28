@@ -1,0 +1,12 @@
+# Maser Buoy – ROS 2 Jazzy + rosbridge with host networking
+# So hub and WiFi devices share the same DDS multicast domain.
+services:
+  ros2_rosbridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.rosbridge
+    platform: linux/arm64
+    network_mode: host
+    environment:
+      ROS_DOMAIN_ID: "${ROS_DOMAIN_ID:-0}"
+    restart: unless-stopped

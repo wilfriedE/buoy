@@ -1,0 +1,33 @@
+---
+# Optional: Nodogsplash = captive portal. When a device joins WiFi, first web request is
+# redirected to the command center (maser.buoy). Skip this role or set captive_portal_enable: false
+# if you don't want that; devices will get normal WiFi access immediately.
+- name: Install Nodogsplash (captive portal) on host
+  ansible.builtin.apt:
+    name: nodogsplash
+    state: present
+  when:
+    - captive_portal_enable | default(true) | bool
+    - not docker_image_build | default(false) | bool
+
+- name: Ensure Nodogsplash config directory exists
+  ansible.builtin.file:
+    path: /etc/nodogsplash
+    state: directory
+    mode: "0755"
+  when: captive_portal_enable | default(true) | bool
+
+- name: Deploy Nodogsplash config for Maser Buoy (redirect to command center)
+  ansible.builtin.template:
+    src: nodogsplash.conf.j2
+    dest: /etc/nodogsplash/nodogsplash.conf
+    mode: "0644"
+  notify: Restart Nodogsplash
+  when: captive_portal_enable | default(true) | bool
+
+- name: Ensure Nodogsplash is started and enabled
+  ansible.builtin.service:
+    name: nodogsplash
+    state: started
+    enabled: true
+  when: captive_portal_enable | default(true) | bool

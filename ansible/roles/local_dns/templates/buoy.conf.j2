@@ -1,0 +1,9 @@
+# Maser Buoy – local TLD {{ buoy_domain }}
+# Devices get hostname.{{ buoy_domain }} via DHCP (expand-hosts)
+domain={{ buoy_domain }}
+expand-hosts
+local=/{{ buoy_domain }}/
+# Hub itself
+address=/{{ maser_buoy_hostname }}.{{ buoy_domain }}/10.3.141.1
+address=/maser.{{ buoy_domain }}/10.3.141.1
+address=/hub.{{ buoy_domain }}/10.3.141.1
