@@ -1,0 +1,27 @@
+---
+description: Core project conventions for Maser Buoy
+alwaysApply: true
+---
+
+# Maser Buoy Project Conventions
+
+## Build & Scripts
+
+- **UV** manages Python scripts. Use `uv run <command>` for: `build`, `download-base`, `build-image`, `create-manifest`
+- **Build outputs** go to `build/` (gitignored): `maser_buoy_build.img`, `docker_images.tar`, `maser_buoy.rpi-imager-manifest`
+- **Base images** go to `image/base/` (gitignored). Download via `uv run download-base`
+- **Shell scripts** in `image/` handle low-level ops (Docker, chroot, parted). Python wrappers in `image/*.py` expose them as UV entry points
+
+## Tech Stack
+
+- **Ansible** for Pi configuration (playbook runs on first boot)
+- **Docker** for ROS 2 (rosbridge); host networking for DDS multicast
+- **hostapd + dnsmasq** for WiFi AP (native, not Docker)
+- **Node.js** for command center (pnpm)
+
+## Key Paths
+
+- `ansible/group_vars/all.yml` – hostname, WiFi, ROS, ports
+- `ansible/playbook.yml` – role order
+- `image/build-with-docker.sh` – main build script (called by `uv run build-image`)
+- `docker/compose.yml` – ROS container definition
