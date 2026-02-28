@@ -8,6 +8,8 @@ wheels/
 # Build outputs (SD image, ROS tar, Pi Imager manifest)
 build/
 *.rpi-imager-manifest
+*.tar
+image/*.tar
 
 # Virtual environments
 .venv
