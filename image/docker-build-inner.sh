@@ -60,32 +60,29 @@ cp /etc/resolv.conf "$MNT/etc/resolv.conf"
 
 echo "[*] Copying repo to /opt/maser_buoy in image..."
 mkdir -p "$MNT/opt/maser_buoy"
-rsync -a --exclude=.git --exclude=.venv --exclude=node_modules --exclude='*.img' --exclude='*.img.xz' "$REPO/" "$MNT/opt/maser_buoy/"
+rsync -a --exclude=.git --exclude=.venv --exclude=node_modules --exclude=build --exclude='*.img' --exclude='*.img.xz' "$REPO/" "$MNT/opt/maser_buoy/"
 
 echo "[*] Setting offline_first_boot to false for build..."
 sed -i 's/offline_first_boot: true/offline_first_boot: false/' "$MNT/opt/maser_buoy/ansible/group_vars/all.yml"
 
-echo "[*] Running playbook (first pass; Docker service may not start in chroot)..."
+echo "[*] Running playbook (ROS image pre-built on host; skip compose start in chroot)..."
 # Install ansible-core only (full ansible pulls in many collections and fills the root partition)
-# docker_image_build=true skips RaspAP quick install (chroot has no real network/cgroups).
+# docker_image_build=true: skips "Start ROS 2" tasks (no dockerd in chroot)
+# docker_image_prebuilt=true: skips "Build ROS 2 image" task (we built on host, copy tar below)
 chroot "$MNT" /bin/bash -c '
   apt-get -qq update
   apt-get -qq install -y ansible-core
   apt-get -qq clean
   cd /opt/maser_buoy/ansible
-  ansible-playbook -i localhost, -c local playbook.yml -e docker_image_build=true
-' || true
+  ansible-playbook -i localhost, -c local playbook.yml -e docker_image_build=true -e docker_image_prebuilt=true
+'
 
-echo "[*] Starting Docker daemon in chroot, building ROS image, and saving for offline first boot..."
-chroot "$MNT" /bin/bash -c '
-  apt-get -qq clean
-  dockerd --storage-driver=vfs &
-  sleep 15
-  cd /opt/maser_buoy/ansible
-  ansible-playbook -i localhost, -c local playbook.yml -e docker_image_build=true
-  cd /opt/maser_buoy/docker 2>/dev/null && docker save -o docker_images.tar $(docker compose images -q) 2>/dev/null || true
-  kill %1 2>/dev/null || true
-' || true
+echo "[*] Copying pre-built ROS image tar into image..."
+if [ ! -f /work/docker_images.tar ]; then
+  echo "ERROR: /work/docker_images.tar not found. ROS image pre-build may have failed."
+  exit 1
+fi
+cp -f /work/docker_images.tar "$MNT/opt/maser_buoy/docker/docker_images.tar"
 
 echo "[*] Setting offline_first_boot back to true..."
 sed -i 's/offline_first_boot: false/offline_first_boot: true/' "$MNT/opt/maser_buoy/ansible/group_vars/all.yml"
@@ -95,8 +92,6 @@ cp "$MNT/opt/maser_buoy/image/first_boot/maser-buoy-firstboot.service" "$MNT/etc
 chroot "$MNT" systemctl enable maser-buoy-firstboot.service 2>/dev/null || true
 
 echo "[*] Unmounting..."
-# Stop any daemons that might still be using the chroot (e.g. containerd from failed dockerd)
-chroot "$MNT" /bin/bash -c 'killall dockerd containerd 2>/dev/null; sleep 2' || true
 umount "$MNT/dev/pts" 2>/dev/null || true
 umount "$MNT/dev" 2>/dev/null || true
 umount "$MNT/proc" 2>/dev/null || true

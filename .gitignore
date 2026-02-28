@@ -1,16 +1,39 @@
 # Python-generated files
 __pycache__/
 *.py[oc]
-build/
 dist/
 wheels/
 *.egg-info
 
+# Build outputs (SD image, ROS tar, Pi Imager manifest)
+build/
+*.rpi-imager-manifest
+
 # Virtual environments
 .venv
 
-# Images
+# Images (downloaded RPi OS, built SD images)
 *.img
+*.img.xz
 
 # Node
 node_modules/
+
+# Security: local overrides with real credentials
+ansible/group_vars/*_local.yml
+ansible/group_vars/*_secrets.yml
+ansible/group_vars/vault.yml
+ansible/.vault_pass
+ansible/.vault_pass.*
+
+# Security: environment files
+.env
+.env.*
+!.env.example
+
+# Security: private keys and certificates
+*.pem
+*.key
+!*.pub
+id_rsa
+id_ed25519

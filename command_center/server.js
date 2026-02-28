@@ -10,7 +10,7 @@ const { marked } = require('marked');
 const app = express();
 const PORT = process.env.COMMAND_CENTER_PORT || 8080;
 
-// DHCP leases path (RaspAP / dnsmasq)
+// DHCP leases path (dnsmasq)
 const LEASES_PATH = process.env.DHCP_LEASES_PATH || '/var/lib/misc/dnsmasq.leases';
 
 const DOCS_DIR = path.join(__dirname, 'public', 'docs');

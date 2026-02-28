@@ -4,6 +4,16 @@ All notable changes to Maser Buoy are documented in this file.
 
 ## [Unreleased]
 
+### Fixed – ROS image now baked into SD image (macOS / Linux)
+
+**Why:** The image build previously tried to start `dockerd` inside the chroot to build the ROS image. On macOS (and some Linux setups), dockerd fails in chroot with "Devices cgroup isn't mounted", so the ROS image was never built and `docker_images.tar` was missing. The Pi would fail on first boot when trying to start the ROS container.
+
+**What changed:**
+- ROS image is now built in a separate Docker run on the host (before the main chroot build)
+- Uses `docker:24` with the host socket to run `docker compose build` and `docker save`
+- The resulting tar is copied into the mounted image after the playbook runs
+- No chroot Docker socket bind-mount needed; works reliably on macOS and Linux
+
 ### Added – ROS container starts soon after dockerd on boot
 
 **Why:** The ROS (rosbridge) container was previously started by the Ansible playbook in `first_boot`, which waits for `network-online.target` and runs four roles first. That caused a long delay between dockerd starting and the ROS container being available.

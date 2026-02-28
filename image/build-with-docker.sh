@@ -7,13 +7,14 @@
 #   ./image/build-with-docker.sh [path-to-raspios-lite.img]
 #
 # If no path is given, looks for image/*.img or image/*.img.xz (Raspberry Pi OS
-# 64-bit Trixie Lite). Output: image/maser_buoy_build.img
+# 64-bit Trixie Lite). Output: build/maser_buoy_build.img
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IMAGE_DIR="$SCRIPT_DIR"
-OUTPUT_IMG="$IMAGE_DIR/maser_buoy_build.img"
+BUILD_DIR="$REPO_ROOT/build"
+OUTPUT_IMG="$BUILD_DIR/maser_buoy_build.img"
 
 # --- Check Docker ---
 if ! command -v docker &>/dev/null; then
@@ -56,16 +57,27 @@ if [[ "$INPUT_IMG" == *.xz ]]; then
   INPUT_IMG="$DECOMPRESSED"
 fi
 
+# --- Create build directory ---
+mkdir -p "$BUILD_DIR"
+
 # --- Create writable copy so we don't modify the original ---
 echo "[*] Creating writable copy: maser_buoy_build.img"
 cp -f "$INPUT_IMG" "$OUTPUT_IMG"
 
+# --- Build ROS image on host (chroot cannot run dockerd; socket bind-mount is unreliable) ---
+echo "[*] Building ROS image for arm64 (on host Docker)..."
+docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$REPO_ROOT:/repo:ro" \
+  -v "$BUILD_DIR:/work:rw" \
+  docker:latest \
+  sh -c 'cd /repo/docker && docker compose build && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest'
+
 # --- Run privileged container ---
-# --cgroupns=host gives the chroot access to host cgroups so Docker may start (Linux; on macOS this may still fail)
-echo "[*] Running build in Docker (this may take a long time)..."
+echo "[*] Running image build in Docker (this may take a long time)..."
 docker run --rm --privileged --cgroupns=host \
   -v "$REPO_ROOT:/repo:ro" \
-  -v "$IMAGE_DIR:/work:rw" \
+  -v "$BUILD_DIR:/work:rw" \
   -v "$SCRIPT_DIR/docker-build-inner.sh:/run-inner.sh:ro" \
   -e "IMG=/work/maser_buoy_build.img" \
   debian:trixie \

@@ -4,11 +4,11 @@ This directory describes how to build a **single image** that you can flash to e
 
 ## Base OS: headless (Lite or server)
 
-Use **Raspberry Pi OS 64-bit (Trixie) – Lite** (or the “other” / server variant without a desktop). Do **not** use the full desktop image; the stack runs entirely headless (RaspAP, Docker, command center, and captive portal are all accessed via browser from other devices).
+Use **Raspberry Pi OS 64-bit (Trixie) – Lite** (or the “other” / server variant without a desktop). Do **not** use the full desktop image; the stack runs entirely headless (WiFi AP, Docker, command center, and captive portal are all accessed via browser from other devices).
 
 ## No internet during initial setup
 
-The playbook supports **offline first boot**. Set `offline_first_boot: true` in `ansible/group_vars/all.yml` (this is the default). The image must be **built once with internet** so that Docker, RaspAP, Docker images, and command center dependencies are already on the disk. When you flash that image and boot a Pi with no network, the first-boot service runs the playbook and only applies configuration and starts services; it does not install packages or pull images.
+The playbook supports **offline first boot**. Set `offline_first_boot: true` in `ansible/group_vars/all.yml` (this is the default). The image must be **built once with internet** so that Docker, hostapd, Docker images, and command center dependencies are already on the disk. When you flash that image and boot a Pi with no network, the first-boot service runs the playbook and only applies configuration and starts services; it does not install packages or pull images.
 
 ## Build the image (with network)
 
@@ -29,7 +29,7 @@ Do this once on a machine or Pi that has internet. To build **without a Raspberr
    cd /opt/maser_buoy  # or wherever you cloned the repo
    sudo ansible-playbook -i localhost, -c local ansible/playbook.yml
    ```
-   This installs Docker, pulls the RaspAP Docker image and starts it, pulls/builds ROS 2 images, runs `pnpm install` for the command center, and configures everything.
+   This installs Docker, configures hostapd and dnsmasq for the WiFi AP, builds ROS 2 images, runs `pnpm install` for the command center, and configures everything.
 4. (Optional) Save Docker images to a tarball for fully offline clones:
    ```bash
    cd /opt/maser_buoy/docker && docker save -o docker_images.tar $(docker compose images -q)
@@ -45,7 +45,7 @@ Do this once on a machine or Pi that has internet. To build **without a Raspberr
 
 ### Option B: Build on a PC with Docker (easiest – no Pi required)
 
-If you have **Docker Desktop**: put a Raspberry Pi OS 64-bit Lite `.img` or `.img.xz` in `image/`, then from the repo root run **`./image/build-with-docker.sh`**. The script **automatically expands the image by 4 GiB** and grows the root partition, so you do **not** need Raspberry Pi Imager to increase storage. Output: **`image/maser_buoy_build.img`**. **WiFi uses native hostapd + dnsmasq** on the host (RaspAP Docker fails on Pi due to driver limitations). The command center and ROS run on the host/Docker. Docker Compose images for ROS are not pre-built in chroot; first boot or a later run with network will pull/build them. If the script fails with "Could not create loop device" (e.g. on Mac), use Linux/WSL2 or see **[BUILD-QEMU.md](BUILD-QEMU.md)** for manual steps.
+If you have **Docker Desktop**: put a Raspberry Pi OS 64-bit Lite `.img` or `.img.xz` in `image/`, then from the repo root run **`./image/build-with-docker.sh`**. The script **automatically expands the image by 4 GiB** and grows the root partition, so you do **not** need Raspberry Pi Imager to increase storage. Output: **`build/maser_buoy_build.img`**. **WiFi uses native hostapd + dnsmasq** on the host (RaspAP Docker fails on Pi due to driver limitations). The command center and ROS run on the host/Docker. ROS Docker images are built during the image build and baked into `docker_images.tar` for offline first boot. If the script fails with "Could not create loop device" (e.g. on Mac), use Linux/WSL2 or see **[BUILD-QEMU.md](BUILD-QEMU.md)** for manual steps.
 
 **Expected build output:** You may see `failed to start daemon: Devices cgroup isn't mounted` and `Cannot connect to the Docker daemon`. These are expected when building inside Docker/QEMU—the chroot lacks full cgroup support. WiFi uses native hostapd (not Docker); on first boot the playbook configures hostapd and dnsmasq on the host.
 
@@ -56,7 +56,7 @@ If you have **Docker Desktop**: put a Raspberry Pi OS 64-bit Lite `.img` or `.im
 When you use **Use custom** and select the image file directly, Pi Imager does not show the settings gear because it has no metadata for custom images. To enable hostname/SSH customization (skip WiFi):
 
 1. Run `./image/create-pi-imager-manifest.sh` (optionally with the image path)
-2. In Pi Imager: **App Options** (gear) → **Content Repository** → **EDIT** → **Use custom file** → select `image/maser_buoy.rpi-imager-manifest` → **APPLY & RESTART**
+2. In Pi Imager: **App Options** (gear) → **Content Repository** → **EDIT** → **Use custom file** → select `build/maser_buoy.rpi-imager-manifest` → **APPLY & RESTART**
 3. The Maser Buoy image will appear in the OS list with the settings gear enabled
 
 Or double-click the manifest file to open it in Imager. The manifest uses `init_format: cloudinit-rpi` (same as Raspberry Pi OS) so Imager can apply hostname, WiFi, and SSH settings to the boot partition.
@@ -91,7 +91,7 @@ You have no display, so use one of these to verify the Pi is up and see what’s
 5. **Check first boot and services:**
    - `cat /etc/maser_buoy_configured` — present if the first-boot playbook completed.
    - `sudo systemctl status maser-buoy-command-center` — command center.
-   - `sudo docker ps` — RaspAP and (if pulled) ROS containers.
+   - `sudo docker ps` — ROS containers.
    - From a device on the Pi’s **WiFi** (MaserBuoy): open http://maser.buoy:8080 for the command center.
 
 SSH is enabled by the playbook so the Pi accepts logins as soon as it has an IP.

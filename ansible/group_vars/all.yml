@@ -1,7 +1,7 @@
 # Maser Buoy hub – shared variables
 
 # Offline first boot: set to true when the Pi has no internet (e.g. field deployment).
-# Image build must be done once WITH network and offline_first_boot: false so Docker, RaspAP, images, and node_modules are installed; then image the SD. Baked image then boots with offline_first_boot: true.
+# Image build must be done once WITH network and offline_first_boot: false so Docker, hostapd, images, and node_modules are installed; then image the SD. Baked image then boots with offline_first_boot: true.
 offline_first_boot: true
 
 maser_buoy_hostname: maser-buoy

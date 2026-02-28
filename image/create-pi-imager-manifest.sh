@@ -6,18 +6,19 @@
 #   ./image/create-pi-imager-manifest.sh [path-to-maser_buoy_build.img]
 #
 # Then: Pi Imager -> App Options -> Content Repository -> Use custom file
-#       -> select image/maser_buoy.rpi-imager-manifest
+#       -> select build/maser_buoy.rpi-imager-manifest
 # Or double-click the manifest file to open it in Imager.
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE_DIR="$SCRIPT_DIR"
-OUTPUT_MANIFEST="$IMAGE_DIR/maser_buoy.rpi-imager-manifest"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+BUILD_DIR="$REPO_ROOT/build"
+OUTPUT_MANIFEST="$BUILD_DIR/maser_buoy.rpi-imager-manifest"
 
 if [ -n "$1" ]; then
   IMG_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 else
-  IMG_PATH="$(cd "$IMAGE_DIR" && pwd)/maser_buoy_build.img"
+  IMG_PATH="$BUILD_DIR/maser_buoy_build.img"
 fi
 
 if [ ! -f "$IMG_PATH" ]; then
@@ -26,6 +27,8 @@ if [ ! -f "$IMG_PATH" ]; then
   echo "  Or pass the path: $0 /path/to/maser_buoy_build.img"
   exit 1
 fi
+
+mkdir -p "$(dirname "$OUTPUT_MANIFEST")"
 
 # Pi Imager expects file:// URLs for local images
 FILE_URL="file://${IMG_PATH}"
@@ -39,7 +42,7 @@ cat > "$OUTPUT_MANIFEST" << EOF
   "os_list": [
     {
       "name": "Maser Buoy",
-      "description": "Headless ROS 2 hub with RaspAP WiFi, .buoy DNS, command center",
+      "description": "Headless ROS 2 hub with WiFi AP, .buoy DNS, command center",
       "url": "$FILE_URL",
       "init_format": "cloudinit-rpi",
       "devices": ["pi5-64bit", "pi4-64bit", "pi3-64bit"],
