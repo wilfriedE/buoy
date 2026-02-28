@@ -1,0 +1,15 @@
+---
+description: Never run git push; user pushes to remote manually
+alwaysApply: true
+---
+
+# Git: No Push
+
+**Never run `git push`** or any variant (`git push --force`, `git push --force-with-lease`, etc.).
+
+The user always pushes to the remote manually. You may:
+- Commit changes (`git commit`)
+- Stage files (`git add`)
+- Suggest the push command for the user to run
+
+Do not execute `git push`.
