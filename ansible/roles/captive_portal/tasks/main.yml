@@ -1,6 +1,6 @@
 ---
 # Optional: Nodogsplash = captive portal. When a device joins WiFi, first web request is
-# redirected to the command center (maser.buoy). Skip this role or set captive_portal_enable: false
+# redirected to the command center. Skip this role or set captive_portal_enable: false
 # if you don't want that; devices will get normal WiFi access immediately.
 - name: Install Nodogsplash (captive portal) on host
   ansible.builtin.apt:

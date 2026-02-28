@@ -6,4 +6,4 @@ GatewayURL http://{{ buoy_hostname }}.{{ buoy_domain }}:{{ command_center_port }
 RedirectURL http://{{ buoy_hostname }}.{{ buoy_domain }}:{{ command_center_port }}/
 # Allow command center and rosbridge so they load
 Whitelist 10.3.141.1
-Whitelist maser.buoy
+Whitelist {{ buoy_hostname }}.{{ buoy_domain }}

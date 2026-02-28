@@ -1,5 +1,5 @@
 ---
-# .buoy TLD and maser.buoy for host dnsmasq (used by wifi_ap role)
+# .buoy TLD and hub DNS (used by wifi_ap role)
 - name: Ensure dnsmasq config directories exist
   ansible.builtin.file:
     path: "{{ item }}"
