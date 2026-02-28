@@ -1,6 +1,7 @@
 ---
 - name: Restart Nodogsplash
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: nodogsplash
     state: restarted
+    daemon_reload: true
   ignore_errors: true

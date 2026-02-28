@@ -25,6 +25,21 @@
   notify: Restart Nodogsplash
   when: captive_portal_enable | default(true) | bool
 
+- name: Ensure nodogsplash starts after wlan0 is configured
+  ansible.builtin.file:
+    path: /etc/systemd/system/nodogsplash.service.d
+    state: directory
+    mode: "0755"
+  when: captive_portal_enable | default(true) | bool
+
+- name: Deploy nodogsplash systemd override (After wifi-ap-setup, hostapd)
+  ansible.builtin.template:
+    src: nodogsplash-service-override.conf.j2
+    dest: /etc/systemd/system/nodogsplash.service.d/override.conf
+    mode: "0644"
+  notify: Restart Nodogsplash
+  when: captive_portal_enable | default(true) | bool
+
 - name: Ensure Nodogsplash is started and enabled
   ansible.builtin.service:
     name: nodogsplash

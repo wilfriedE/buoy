@@ -1,0 +1,3 @@
+# Ensure nodogsplash starts after wlan0 is configured and hostapd is running
+[Unit]
+After=wifi-ap-setup.service hostapd.service
