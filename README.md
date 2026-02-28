@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wilfriedE/buoy/main/assets/logo.svg" alt="Buoy" width="120" />
+  <img src="assets/logo.svg" alt="Buoy" width="120" />
 </p>
 
 # Buoy
