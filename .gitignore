@@ -22,6 +22,8 @@ image/base/
 
 # Node
 node_modules/
+.pnpm-store/
+pnpm-debug.log*
 
 # Security: local overrides with real credentials
 ansible/group_vars/*_local.yml
