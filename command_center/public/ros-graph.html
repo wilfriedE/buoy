@@ -5,37 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ROS 2 Topic Graph – Buoy</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
   <script src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; background: #1a1a2e; color: #eee; }
-    .header { padding: 1rem; border-bottom: 1px solid #2d2d44; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-    .header h1 { margin: 0; font-size: 1.25rem; }
-    .status { font-size: 0.9rem; padding: 0.25rem 0.5rem; border-radius: 4px; }
-    .status.connected { background: #27ae60; color: #fff; }
-    .status.disconnected { background: #c0392b; color: #fff; }
-    .status.loading { background: #f39c12; color: #000; }
-    #graph { width: 100%; height: calc(100vh - 60px); }
-    .controls { display: flex; gap: 0.5rem; align-items: center; }
-    .controls button { padding: 0.4rem 0.8rem; border-radius: 4px; border: none; background: #3498db; color: #fff; cursor: pointer; font-size: 0.9rem; }
-    .controls button:hover { background: #2980b9; }
-    .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .error { padding: 1rem; color: #e74c3c; }
-    a { color: #74b9ff; }
-  </style>
+  <style>body { background: #0f172a; } .nav-link:hover { color: #38bdf8; }</style>
 </head>
-<body>
-  <div class="header">
-    <h1>ROS 2 Topic Graph</h1>
-    <span id="status" class="status disconnected">Disconnected</span>
-    <div class="controls">
-      <button id="refresh" disabled>Refresh</button>
-      <a href="/">← Command Center</a>
+<body class="min-h-screen text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Topic Graph</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
+        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Disconnected</span>
+        <button id="refresh" disabled class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+          Refresh
+        </button>
+      </div>
     </div>
-  </div>
-  <div id="graph"></div>
-  <div id="error" class="error" style="display:none"></div>
+  </nav>
+
+  <div id="graph" class="w-full" style="height: calc(100vh - 60px);"></div>
+  <div id="error" class="hidden p-4 text-red-400 bg-red-500/10 border-t border-red-500/20"></div>
 
   <script>
     (function() {
@@ -47,35 +43,35 @@
       const refreshBtn = document.getElementById('refresh');
 
       function setStatus(cls, text) {
-        statusEl.className = 'status ' + cls;
+        statusEl.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
         statusEl.textContent = text;
       }
 
       function showError(msg) {
         errorEl.textContent = msg;
-        errorEl.style.display = 'block';
+        errorEl.classList.remove('hidden');
       }
 
       function hideError() {
-        errorEl.style.display = 'none';
+        errorEl.classList.add('hidden');
       }
 
       const ros = new ROSLIB.Ros({ url: wsUrl });
 
       ros.on('connection', function() {
-        setStatus('connected', 'Connected');
+        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
         refreshBtn.disabled = false;
         hideError();
         loadGraph();
       });
 
       ros.on('error', function(err) {
-        setStatus('disconnected', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
         showError('Cannot connect to rosbridge at ' + wsUrl + '. Is the rosbridge container running?');
       });
 
       ros.on('close', function() {
-        setStatus('disconnected', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
       });
 
       function callService(name, srvType, request) {
@@ -87,7 +83,7 @@
       }
 
       async function loadGraph() {
-        setStatus('loading', 'Loading graph…');
+        setStatus('bg-amber-500/20 text-amber-400', 'Loading…');
         hideError();
         try {
           const [topicsRes, nodesRes] = await Promise.all([
@@ -123,7 +119,7 @@
 
           const nodes = Array.from(allNodes);
           if (nodes.length === 0 && topics.length === 0) {
-            setStatus('connected', 'Connected (no nodes or topics)');
+            setStatus('bg-emerald-500/20 text-emerald-400', 'Connected (no nodes)');
             clearGraph();
             renderEmpty();
             return;
@@ -138,9 +134,8 @@
             visNodes.add({
               id: n,
               label: n,
-              group: 'node',
-              font: { color: '#eee', size: 14 },
-              color: { background: '#3498db', border: '#2980b9' },
+              font: { color: '#e2e8f0', size: 14 },
+              color: { background: '#38bdf8', border: '#0ea5e9' },
               shape: 'box'
             });
           });
@@ -151,9 +146,8 @@
             visNodes.add({
               id: t,
               label: t + '\n' + shortType,
-              group: 'topic',
-              font: { color: '#eee', size: 12 },
-              color: { background: '#2ecc71', border: '#27ae60' },
+              font: { color: '#e2e8f0', size: 12 },
+              color: { background: '#34d399', border: '#10b981' },
               shape: 'ellipse'
             });
           });
@@ -162,21 +156,16 @@
             visEdges.add({
               from: c.from,
               to: c.to,
-              arrows: c.dir === 'pub' ? 'to' : 'to',
-              color: { color: '#7f8c8d' }
+              arrows: 'to',
+              color: { color: '#64748b' }
             });
           });
 
           const data = { nodes: visNodes, edges: visEdges };
           clearGraph();
           const options = {
-            nodes: {
-              borderWidth: 2,
-              shadow: true
-            },
-            edges: {
-              smooth: { type: 'cubicBezier' }
-            },
+            nodes: { borderWidth: 2, shadow: true },
+            edges: { smooth: { type: 'cubicBezier' } },
             physics: {
               enabled: true,
               solver: 'forceAtlas2Based',
@@ -187,24 +176,20 @@
                 springConstant: 0.08
               }
             },
-            interaction: {
-              dragNodes: true,
-              zoomView: true,
-              dragView: true
-            }
+            interaction: { dragNodes: true, zoomView: true, dragView: true }
           };
 
-          const network = new vis.Network(graphEl, data, options);
-          setStatus('connected', 'Connected');
+          new vis.Network(graphEl, data, options);
+          setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
         } catch (err) {
-          setStatus('connected', 'Connected');
+          setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
           showError('Failed to load graph: ' + (err.message || err));
           console.error(err);
         }
       }
 
       function renderEmpty() {
-        graphEl.innerHTML = '<div style="padding:2rem;text-align:center;color:#7f8c8d">No ROS nodes or topics found. Start some nodes with <code>ROS_DOMAIN_ID=0</code> to see them here.</div>';
+        graphEl.innerHTML = '<div class="flex items-center justify-center h-full text-slate-500"><p>No ROS nodes or topics found. Start some nodes with <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ROS_DOMAIN_ID=0</code> to see them here.</p></div>';
       }
 
       function clearGraph() {

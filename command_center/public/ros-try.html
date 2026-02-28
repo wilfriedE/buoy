@@ -5,64 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ROS Listen & Publish – Buoy</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a2e; color: #eee; max-width: 720px; margin: 0 auto; }
-    .header { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .header h1 { margin: 0; font-size: 1.25rem; }
-    .status { font-size: 0.9rem; padding: 0.25rem 0.6rem; border-radius: 4px; font-weight: 500; }
-    .status.connected { background: #27ae60; color: #fff; }
-    .status.disconnected { background: #c0392b; color: #fff; }
-    .status.checking { background: #f39c12; color: #000; }
-    .nav { margin-bottom: 1.5rem; }
-    .nav a { color: #7f8c8d; text-decoration: none; font-size: 0.9rem; }
-    .nav a:hover { color: #74b9ff; }
-    .panel { background: #16213e; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-    .panel h2 { margin: 0 0 0.75rem 0; font-size: 1rem; color: #74b9ff; }
-    .messages { max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; }
-    .msg { padding: 0.25rem 0; border-bottom: 1px solid #2d2d44; }
-    .msg:last-child { border-bottom: none; }
-    .msg time { color: #7f8c8d; font-size: 0.8rem; margin-right: 0.5rem; }
-    .publish-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-    .publish-row input { flex: 1; padding: 0.5rem; border-radius: 4px; border: 1px solid #2d2d44; background: #1a1a2e; color: #eee; font-size: 1rem; }
-    .publish-row button { padding: 0.5rem 1rem; border-radius: 4px; border: none; background: #3498db; color: #fff; cursor: pointer; font-weight: 500; }
-    .publish-row button:hover { background: #2980b9; }
-    .publish-row button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .topic-config { margin-bottom: 0.75rem; font-size: 0.9rem; }
-    .topic-config label { color: #7f8c8d; }
-    .topic-config input { padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid #2d2d44; background: #1a1a2e; color: #eee; width: 200px; }
-    .error { color: #e74c3c; font-size: 0.9rem; margin-top: 0.5rem; }
-    a { color: #74b9ff; }
-  </style>
+  <style>body { background: #0f172a; } .nav-link:hover { color: #38bdf8; }</style>
 </head>
-<body>
-  <div class="header">
-    <h1>ROS Listen & Publish</h1>
-    <span id="status" class="status checking">Connecting…</span>
-  </div>
-  <p class="nav"><a href="/">← Command Center</a></p>
-  <p>Subscribe to messages and publish to topics. All devices on the buoy's WiFi share the same ROS network—messages you publish appear on other devices' listeners.</p>
+<body class="min-h-screen text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Listen & Publish</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
+        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Connecting…</span>
+      </div>
+    </div>
+  </nav>
 
-  <div class="panel">
-    <h2>Listen (subscribe)</h2>
-    <div class="topic-config">
-      <label>Topic: </label><input id="listen-topic" type="text" value="/chatter" placeholder="/chatter">
-    </div>
-    <div id="messages" class="messages">Waiting for messages…</div>
-  </div>
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <p class="text-slate-400 mb-6">Subscribe to messages and publish to topics. All devices on the buoy's WiFi share the same ROS network.</p>
 
-  <div class="panel">
-    <h2>Publish</h2>
-    <div class="topic-config">
-      <label>Topic: </label><input id="pub-topic" type="text" value="/chatter" placeholder="/chatter">
+    <div class="space-y-6">
+      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">Listen (subscribe)</h2>
+        <div class="mb-3">
+          <label class="block text-sm text-slate-400 mb-1">Topic</label>
+          <input id="listen-topic" type="text" value="/chatter" placeholder="/chatter"
+            class="w-full max-w-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50">
+        </div>
+        <div id="messages" class="max-h-48 overflow-y-auto font-mono text-sm rounded-lg bg-slate-900/50 p-3 border border-slate-700/50">Waiting for messages…</div>
+      </div>
+
+      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">Publish</h2>
+        <div class="mb-3">
+          <label class="block text-sm text-slate-400 mb-1">Topic</label>
+          <input id="pub-topic" type="text" value="/chatter" placeholder="/chatter"
+            class="w-full max-w-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50">
+        </div>
+        <div class="flex gap-2">
+          <input id="pub-input" type="text" placeholder="Type a message…" maxlength="500"
+            class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50">
+          <button id="pub-btn" disabled class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+            Publish
+          </button>
+        </div>
+        <div id="pub-error" class="mt-2 text-sm text-red-400 hidden"></div>
+      </div>
     </div>
-    <div class="publish-row">
-      <input id="pub-input" type="text" placeholder="Type a message…" maxlength="500">
-      <button id="pub-btn" disabled>Publish</button>
-    </div>
-    <div id="pub-error" class="error" style="display:none"></div>
-  </div>
+  </main>
 
   <script>
     (function() {
@@ -80,27 +75,23 @@
       let publisher = null;
 
       function setStatus(cls, text) {
-        statusEl.className = 'status ' + cls;
+        statusEl.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
         statusEl.textContent = text;
       }
 
       function addMessage(topic, data) {
         const msg = document.createElement('div');
-        msg.className = 'msg';
+        msg.className = 'py-2 border-b border-slate-700/50 last:border-0';
         const time = new Date().toLocaleTimeString();
         const text = typeof data === 'string' ? data : (data.data !== undefined ? data.data : JSON.stringify(data));
-        msg.innerHTML = '<time>' + time + '</time>' + escapeHtml(text);
+        const div = document.createElement('div');
+        div.textContent = text;
+        msg.innerHTML = '<span class="text-slate-500 text-xs mr-2">' + time + '</span>' + div.innerHTML;
         messagesEl.appendChild(msg);
         messagesEl.scrollTop = messagesEl.scrollHeight;
-        if (messagesEl.querySelectorAll('.msg').length > 100) {
+        if (messagesEl.querySelectorAll('.py-2').length > 100) {
           messagesEl.removeChild(messagesEl.firstChild);
         }
-      }
-
-      function escapeHtml(s) {
-        const div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
       }
 
       function subscribe() {
@@ -108,7 +99,7 @@
         const topic = listenTopicInput.value.trim() || '/chatter';
         listener = new ROSLIB.Topic({ ros: ros, name: topic, messageType: 'std_msgs/msg/String' });
         listener.subscribe(function(msg) {
-          if (!messagesEl.querySelector('.msg')) messagesEl.innerHTML = '';
+          if (!messagesEl.querySelector('.py-2')) messagesEl.innerHTML = '';
           addMessage(topic, msg.data);
         });
       }
@@ -119,33 +110,32 @@
       }
 
       ros.on('connection', function() {
-        setStatus('connected', 'Connected');
+        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
         pubBtn.disabled = false;
-        pubErrorEl.style.display = 'none';
+        pubErrorEl.classList.add('hidden');
         subscribe();
         setupPublisher();
       });
 
       ros.on('error', function() {
-        setStatus('disconnected', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
         pubBtn.disabled = true;
       });
 
       ros.on('close', function() {
-        setStatus('disconnected', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
         pubBtn.disabled = true;
       });
 
       listenTopicInput.addEventListener('change', subscribe);
       listenTopicInput.addEventListener('blur', subscribe);
-
       pubTopicInput.addEventListener('change', setupPublisher);
       pubTopicInput.addEventListener('blur', setupPublisher);
 
       pubBtn.addEventListener('click', function() {
         const text = pubInput.value.trim();
         if (!text) return;
-        pubErrorEl.style.display = 'none';
+        pubErrorEl.classList.add('hidden');
         try {
           const topic = pubTopicInput.value.trim() || '/chatter';
           const pub = new ROSLIB.Topic({ ros: ros, name: topic, messageType: 'std_msgs/msg/String' });
@@ -153,7 +143,7 @@
           pubInput.value = '';
         } catch (e) {
           pubErrorEl.textContent = e.message || 'Publish failed';
-          pubErrorEl.style.display = 'block';
+          pubErrorEl.classList.remove('hidden');
         }
       });
 

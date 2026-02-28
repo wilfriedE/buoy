@@ -39,32 +39,44 @@ app.get('/docs/:name.md', (req, res) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)} – Buoy</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #1a1a2e; color: #e8e8e8; line-height: 1.6; }
-    .doc { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
-    .doc h1 { font-size: 1.75rem; margin-top: 0; border-bottom: 1px solid #2d2d44; padding-bottom: 0.5rem; }
-    .doc h2 { font-size: 1.25rem; margin-top: 2rem; color: #74b9ff; }
-    .doc h3 { font-size: 1.1rem; margin-top: 1.5rem; }
-    .doc p { margin: 1rem 0; }
-    .doc ul, .doc ol { margin: 1rem 0; padding-left: 1.5rem; }
-    .doc li { margin: 0.25rem 0; }
-    .doc code { background: #16213e; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
-    .doc pre { background: #16213e; padding: 1rem; border-radius: 6px; overflow-x: auto; }
-    .doc pre code { background: none; padding: 0; }
-    .doc hr { border: none; border-top: 1px solid #2d2d44; margin: 2rem 0; }
-    .doc a { color: #74b9ff; }
-    .doc strong { color: #fff; }
-    .nav { margin-bottom: 2rem; }
-    .nav a { color: #7f8c8d; text-decoration: none; font-size: 0.9rem; }
-    .nav a:hover { color: #74b9ff; }
+    body { background: #0f172a; }
+    .nav-link:hover { color: #38bdf8; }
+    .doc-content h1 { font-size: 1.75rem; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+    .doc-content h2 { font-size: 1.25rem; margin-top: 2rem; color: #38bdf8; }
+    .doc-content h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+    .doc-content p { margin: 1rem 0; }
+    .doc-content ul, .doc-content ol { margin: 1rem 0; padding-left: 1.5rem; }
+    .doc-content li { margin: 0.25rem 0; }
+    .doc-content code { background: #1e293b; padding: 0.15rem 0.4rem; border-radius: 6px; font-size: 0.9em; }
+    .doc-content pre { background: #1e293b; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #334155; }
+    .doc-content pre code { background: none; padding: 0; }
+    .doc-content hr { border: none; border-top: 1px solid #334155; margin: 2rem 0; }
+    .doc-content a { color: #38bdf8; }
+    .doc-content strong { color: #f8fafc; }
   </style>
 </head>
-<body>
-  <div class="doc">
-    <p class="nav"><a href="/">← Command Center</a></p>
-    <div class="content">${html}</div>
-  </div>
+<body class="min-h-screen text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Docs</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
+        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
+        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
+      </div>
+    </div>
+  </nav>
+  <main class="max-w-3xl mx-auto px-4 py-8">
+    <div class="doc-content content">${html}</div>
+  </main>
 </body>
 </html>`);
   } else {

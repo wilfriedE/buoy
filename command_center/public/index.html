@@ -5,91 +5,116 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buoy – Command Center</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            buoy: { bg: '#0f172a', card: '#1e293b', accent: '#38bdf8', muted: '#64748b' }
+          }
+        }
+      }
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a2e; color: #eee; }
-    h1 { margin-top: 0; }
-    .brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-    .brand .logo { width: 48px; height: 48px; flex-shrink: 0; }
-    .brand-text { flex: 1; }
-    .brand-text h1 { margin: 0 0 0.15rem 0; font-size: 1.5rem; }
-    .tagline { margin: 0; font-size: 0.9rem; color: #74b9ff; font-weight: 500; }
-    .header { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
-    .ros-status { font-size: 0.9rem; padding: 0.25rem 0.6rem; border-radius: 4px; font-weight: 500; }
-    .ros-status.connected { background: #27ae60; color: #fff; }
-    .ros-status.disconnected { background: #c0392b; color: #fff; }
-    .ros-status.checking { background: #f39c12; color: #000; }
-    .section { margin-bottom: 1.5rem; }
-    .devices { display: grid; gap: 0.5rem; }
-    .device { background: #16213e; padding: 0.5rem 0.75rem; border-radius: 6px; font-family: monospace; }
-    .ros-url { font-size: 0.9rem; color: #7f8c8d; margin-top: 1rem; }
-    a { color: #74b9ff; }
-    .wifi-form { max-width: 320px; }
-    .form-row { margin-bottom: 0.75rem; }
-    .form-row label { display: block; font-size: 0.9rem; margin-bottom: 0.25rem; color: #bdc3c7; }
-    .form-row input { width: 100%; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #2d2d44; background: #16213e; color: #eee; font-size: 1rem; }
-    .form-row input::placeholder { color: #7f8c8d; }
-    .wifi-form button { padding: 0.5rem 1rem; border-radius: 6px; border: none; background: #74b9ff; color: #1a1a2e; font-weight: 600; cursor: pointer; }
-    .wifi-form button:hover { background: #5dade2; }
-    .wifi-form button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .wifi-status { margin-left: 0.5rem; font-size: 0.9rem; }
-    .wifi-status.success { color: #27ae60; }
-    .wifi-status.error { color: #e74c3c; }
+    body { background: #0f172a; }
+    .nav-link:hover { color: #38bdf8; }
   </style>
 </head>
-<body>
-  <div class="brand">
-    <img src="/logo.svg" alt="Buoy" class="logo" />
-    <div class="brand-text">
-      <h1>Buoy</h1>
-      <p class="tagline">Your ROS 2 hub that keeps the network afloat.</p>
+<body class="min-h-screen text-slate-200">
+  <!-- Nav -->
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-10 h-10" />
+          <div>
+            <h1 class="text-lg font-semibold text-white">Buoy</h1>
+            <p class="text-xs text-sky-400">Command Center</p>
+          </div>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
+        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
+        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
+        <a href="/docs/ros-hub.md" class="nav-link text-sm text-slate-400">Docs</a>
+        <span id="ros-status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Checking…</span>
+      </div>
     </div>
-  </div>
-  <div class="header">
-    <span id="ros-status" class="ros-status checking">Checking ROS…</span>
-  </div>
-  <p>Hub for ROS 2 devices on this network. Connect to <code>buoy.buoy</code> for the hub.</p>
+  </nav>
 
-  <div class="section">
-    <h2>WiFi settings</h2>
-    <p>Change the hub's WiFi SSID and password. Devices will need to reconnect after changes.</p>
-    <form id="wifi-form" class="wifi-form">
-      <div class="form-row">
-        <label for="wifi-ssid">SSID</label>
-        <input type="text" id="wifi-ssid" name="ssid" required placeholder="Network name" minlength="1" maxlength="32">
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Hero -->
+    <div class="mb-8">
+      <p class="text-slate-400">Hub for ROS 2 devices on this network. Connect to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">buoy.buoy</code> for the hub.</p>
+    </div>
+
+    <!-- Dashboard grid -->
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+      <!-- Connected devices -->
+      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">Connected devices</h2>
+        <div id="devices" class="space-y-2 min-h-[80px] text-slate-300">Loading…</div>
       </div>
-      <div class="form-row">
-        <label for="wifi-passphrase">Password</label>
-        <input type="password" id="wifi-passphrase" name="passphrase" placeholder="Leave blank to keep current" maxlength="63" title="8–63 characters if changing">
+
+      <!-- Quick actions -->
+      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">ROS 2</h2>
+        <div class="space-y-3">
+          <a href="/ros-try.html" class="block p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+            <span class="font-medium text-white">Listen & Publish</span>
+            <p class="text-sm text-slate-400 mt-0.5">Subscribe and publish to topics from your browser</p>
+          </a>
+          <a href="/ros-graph.html" class="block p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+            <span class="font-medium text-white">Topic graph</span>
+            <p class="text-sm text-slate-400 mt-0.5">Visualize nodes and topics (vis-network)</p>
+          </a>
+          <div class="p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+            <p class="text-sm text-slate-400">Use <a href="https://studio.foxglove.dev" target="_blank" rel="noopener" class="text-sky-400 hover:underline">Foxglove Studio</a> with <code class="text-xs">ws://buoy.buoy:9090</code></p>
+          </div>
+        </div>
       </div>
-      <button type="submit" id="wifi-submit">Apply</button>
-      <span id="wifi-status" class="wifi-status"></span>
-    </form>
-  </div>
+    </div>
 
-  <div class="section">
-    <h2>Connected devices</h2>
-    <div id="devices" class="devices">Loading…</div>
-  </div>
-
-  <div class="section">
-    <h2>ROS 2</h2>
-    <p><a href="/ros-try.html"><strong>Listen & Publish</strong></a> – subscribe to topics and publish messages from your browser. All devices on the WiFi share the same ROS network.</p>
-    <p><a href="/ros-graph.html"><strong>Topic graph</strong></a> – built-in viewer (roslibjs + vis-network, open source).</p>
-    <p>Or use <a href="https://studio.foxglove.dev" target="_blank" rel="noopener">Foxglove Studio</a> with Rosbridge URL <code>ws://buoy.buoy:9090</code>.</p>
-    <p>Code examples in <a href="/docs/ros-hub.md">ROS Hub docs</a> (Python, JavaScript, TypeScript).</p>
-  </div>
+    <!-- WiFi settings (collapsible) -->
+    <details class="group bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+      <summary class="px-6 py-4 cursor-pointer list-none flex items-center justify-between hover:bg-slate-700/30">
+        <span class="text-sm font-semibold text-sky-400 uppercase tracking-wider">WiFi settings</span>
+        <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+      </summary>
+      <div class="px-6 pb-6 pt-2 border-t border-slate-700/50">
+        <p class="text-sm text-slate-400 mb-4">Change the hub's WiFi SSID and password. Devices will need to reconnect after changes.</p>
+        <form id="wifi-form" class="max-w-sm space-y-4">
+          <div>
+            <label for="wifi-ssid" class="block text-sm font-medium text-slate-300 mb-1">SSID</label>
+            <input type="text" id="wifi-ssid" name="ssid" required placeholder="Network name" minlength="1" maxlength="32"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
+          </div>
+          <div>
+            <label for="wifi-passphrase" class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+            <input type="password" id="wifi-passphrase" name="passphrase" placeholder="Leave blank to keep current" maxlength="63"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="submit" id="wifi-submit" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+              Apply
+            </button>
+            <span id="wifi-status" class="text-sm"></span>
+          </div>
+        </form>
+      </div>
+    </details>
+  </main>
 
   <script>
-    // Load current WiFi SSID
-    fetch('/api/wifi')
-      .then(r => r.json())
-      .then(({ ssid }) => {
-        const el = document.getElementById('wifi-ssid');
-        if (el) el.value = ssid || '';
-      })
-      .catch(() => {});
+    fetch('/api/wifi').then(r => r.json()).then(({ ssid }) => {
+      const el = document.getElementById('wifi-ssid');
+      if (el) el.value = ssid || '';
+    }).catch(() => {});
 
     document.getElementById('wifi-form').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -97,7 +122,7 @@
       const status = document.getElementById('wifi-status');
       btn.disabled = true;
       status.textContent = '';
-      status.className = 'wifi-status';
+      status.className = 'text-sm';
       fetch('/api/wifi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -110,11 +135,11 @@
         .then((data) => {
           if (data.error) throw new Error(data.error);
           status.textContent = 'Saved. Devices may need to reconnect.';
-          status.className = 'wifi-status success';
+          status.className = 'text-sm text-emerald-400';
         })
         .catch((err) => {
           status.textContent = err.message || 'Failed to update';
-          status.className = 'wifi-status error';
+          status.className = 'text-sm text-red-400';
         })
         .finally(() => { btn.disabled = false; });
     });
@@ -124,15 +149,15 @@
       .then(({ devices }) => {
         const el = document.getElementById('devices');
         if (devices.length === 0) {
-          el.textContent = 'No DHCP leases found. Devices will appear when connected to this WiFi.';
+          el.innerHTML = '<p class="text-slate-500 text-sm">No DHCP leases. Devices appear when connected to this WiFi.</p>';
           return;
         }
         el.innerHTML = devices.map(d =>
-          `<div class="device">${d.hostname || d.ip} — ${d.ip} (${d.mac})</div>`
+          `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-slate-700/30 font-mono text-sm">${d.hostname || d.ip} — ${d.ip} <span class="text-slate-500 text-xs">${d.mac}</span></div>`
         ).join('');
       })
       .catch(() => {
-        document.getElementById('devices').textContent = 'Could not load devices.';
+        document.getElementById('devices').innerHTML = '<p class="text-red-400 text-sm">Could not load devices.</p>';
       });
 
     (function() {
@@ -141,25 +166,25 @@
       const ros = new ROSLIB.Ros({ url: wsUrl });
 
       function setStatus(cls, text) {
-        el.className = 'ros-status ' + cls;
+        el.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
         el.textContent = text;
       }
 
       ros.on('connection', function() {
-        setStatus('connected', 'ROS: Connected');
+        setStatus('bg-emerald-500/20 text-emerald-400', 'ROS: Connected');
         const svc = new ROSLIB.Service({ ros: ros, name: '/rosapi/topics', serviceType: 'rosapi_msgs/srv/Topics' });
         svc.callService(new ROSLIB.ServiceRequest({}), function(res) {
           const n = (res.topics || []).length;
-          setStatus('connected', 'ROS: Connected (' + n + ' topic' + (n !== 1 ? 's' : '') + ')');
+          setStatus('bg-emerald-500/20 text-emerald-400', 'ROS: Connected (' + n + ' topic' + (n !== 1 ? 's' : '') + ')');
         });
       });
 
       ros.on('error', function() {
-        setStatus('disconnected', 'ROS: Not connected');
+        setStatus('bg-red-500/20 text-red-400', 'ROS: Not connected');
       });
 
       ros.on('close', function() {
-        setStatus('disconnected', 'ROS: Not connected');
+        setStatus('bg-red-500/20 text-red-400', 'ROS: Not connected');
       });
     })();
   </script>

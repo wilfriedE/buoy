@@ -10,7 +10,7 @@ This guide is for **users** who connect to a Buoy hub (WiFi and web dashboard) a
 2. **IP and DNS** – Your device will get an IP via DHCP. The hub is the DNS server. You can reach it by:
    - **Hostname:** `buoy.buoy` or `hub.buoy`
    - **IP:** usually `10.3.141.1` (confirm on the command center page)
-3. **Command center** – Open a browser and go to `http://buoy.buoy:8080` (or the IP and port shown after connecting). You’ll see the dashboard with connected devices and a link to the ROS topic graph.
+3. **Command center** – Open a browser and go to `http://buoy.buoy` (or the IP shown after connecting). You’ll see the dashboard with connected devices and a link to the ROS topic graph.
 4. **SSH** – To access the Raspberry Pi over SSH: `ssh maser@buoy.buoy` (or `ssh maser@10.3.141.1`). Default password: `ChangeMe`. Ask the hub operator for credentials if they were changed during setup.
 
 ---

@@ -21,8 +21,8 @@ ros_domain_id: "0"
 ros_bridge_port: 9090
 ros_discovery_server_port: 11811
 use_discovery_server: false
-# Command center
-command_center_port: 8080
+# Command center (80 = default HTTP, no port needed in URL)
+command_center_port: 80
 # Captive portal: when true, install Nodogsplash so new WiFi clients must pass a splash (command center) before full access. Set false for normal WiFi as soon as they connect.
 captive_portal_enable: false
 # Paths

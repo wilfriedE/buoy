@@ -11,7 +11,7 @@ Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local 
 ## Features
 
 - **WiFi AP** – Native hostapd + dnsmasq so devices connect to one SSID and get DHCP/DNS from the Pi
-- **Local DNS** – `buoy.buoy`, `hub.buoy`, and `hostname.buoy` for connected devices. After joining WiFi, open **http://buoy.buoy:8080** for the command center.
+- **Local DNS** – `buoy.buoy`, `hub.buoy`, and `hostname.buoy` for connected devices. After joining WiFi, open **http://buoy.buoy** for the command center.
 - **ROS 2 Jazzy** – Runs in Docker with **host networking** so the hub and WiFi clients share the same DDS multicast domain
 - **Command center** – Web dashboard (ROS topic graph link, connected devices list). Optional **captive portal** (Nodogsplash): when enabled, new WiFi clients are redirected here on first browse; set `captive_portal_enable: false` in `ansible/group_vars/all.yml` to skip.
 - **Single image** – Flash one image to each Pi; first boot runs Ansible to configure the hub
