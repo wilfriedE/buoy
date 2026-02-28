@@ -5,24 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buoy – Command Center</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            buoy: { bg: '#0f172a', card: '#1e293b', accent: '#38bdf8', muted: '#64748b' }
-          }
-        }
-      }
-    }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
-  <style>
-    body { background: #0f172a; }
-    .nav-link:hover { color: #38bdf8; }
-  </style>
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+  <script src="/vendor/roslib.min.js"></script>
 </head>
 <body class="min-h-screen text-slate-200">
   <!-- Nav -->

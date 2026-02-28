@@ -57,6 +57,12 @@
   changed_when: true
   when: not offline_first_boot | default(false) | bool
 
+- name: Build command center assets (Tailwind, vendor JS for offline use)
+  ansible.builtin.command:
+    cmd: pnpm run build
+    chdir: "{{ buoy_root }}/command_center"
+  when: not offline_first_boot | default(false) | bool
+
 - name: Deploy command center systemd unit
   ansible.builtin.template:
     src: buoy-command-center.service.j2

@@ -18,6 +18,7 @@ Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local 
 
 ## Quick links
 
+- **[Command center – local dev](command_center/README.md)** – Run the dashboard locally with live reload for UI work (asdf + pnpm)
 - **[Changelog](CHANGELOG.md)** – Notable changes and migration notes
 - **[User guide: connecting and interacting with ROS devices](docs/ros-hub.md)** – For users of the hub: connect to WiFi, run ROS 2 nodes, use rosbridge (Python, JavaScript, TypeScript examples)
 - **[Image build: flash and first boot](image/README.md)** – Build the image (with network once); first boot on the Pi runs offline. Use the **headless** (Lite/server) base OS. **GitHub Actions:** Run **Actions → Build Image and Release** to build and publish a release with the image and Pi Imager manifest. *(Originally developed for [MASER-DC](https://www.maserdc.org/) Buoy project.)*

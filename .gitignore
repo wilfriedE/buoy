@@ -2,6 +2,7 @@
 __pycache__/
 *.py[oc]
 dist/
+command_center/public/vendor/
 wheels/
 *.egg-info
 
