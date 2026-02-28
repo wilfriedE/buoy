@@ -34,17 +34,17 @@ if [ -n "$1" ]; then
     exit 1
   fi
 else
-  # Look for .img or .img.xz in image/
+  # Look for .img or .img.xz in image/base/ first, then image/
   INPUT_IMG=""
-  for f in "$IMAGE_DIR"/*.img "$IMAGE_DIR"/*.img.xz; do
+  for f in "$IMAGE_DIR"/base/*.img "$IMAGE_DIR"/base/*.img.xz \
+           "$IMAGE_DIR"/*.img "$IMAGE_DIR"/*.img.xz; do
     [ -e "$f" ] && INPUT_IMG="$f" && break
   done
   if [ -z "$INPUT_IMG" ]; then
     echo "ERROR: No Raspberry Pi OS image found."
-    echo "  Download Raspberry Pi OS 64-bit (Trixie) Lite from:"
-    echo "  https://www.raspberrypi.com/software/operating-systems/"
-    echo "  Place the .img or .img.xz file in: $IMAGE_DIR/"
-    echo "  Or pass the path as an argument: $0 /path/to/raspios-lite.img"
+    echo "  Download the base image:  uv run download-base"
+    echo "  Or manually from: https://www.raspberrypi.com/software/operating-systems/"
+    echo "  Place the .img or .img.xz in image/base/ or pass: $0 /path/to/raspios-lite.img"
     exit 1
   fi
 fi

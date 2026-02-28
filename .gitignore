@@ -12,9 +12,10 @@ build/
 # Virtual environments
 .venv
 
-# Images (downloaded RPi OS, built SD images)
+# Images (downloaded RPi OS base, built SD images)
 *.img
 *.img.xz
+image/base/
 
 # Node
 node_modules/

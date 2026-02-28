@@ -1,9 +1,19 @@
 [project]
 name = "maser-buoy"
 version = "0.1.0"
-description = "Add your description here"
+description = "Headless ROS 2 Jazzy hub for Raspberry Pi 5"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "ansible>=13.3.0",
 ]
+
+[project.scripts]
+download-base = "image.download_base:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["image"]
