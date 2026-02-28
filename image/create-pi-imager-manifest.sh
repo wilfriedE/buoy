@@ -4,6 +4,7 @@
 #
 # Usage:
 #   ./image/create-pi-imager-manifest.sh [path-to-maser_buoy_build.img]
+#   ./image/create-pi-imager-manifest.sh --url "https://example.com/image.img.xz"
 #
 # Then: Pi Imager -> App Options -> Content Repository -> Use custom file
 #       -> select build/maser_buoy.rpi-imager-manifest
@@ -14,24 +15,38 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD_DIR="$REPO_ROOT/build"
 OUTPUT_MANIFEST="$BUILD_DIR/maser_buoy.rpi-imager-manifest"
+FILE_URL=""
 
-if [ -n "$1" ]; then
-  IMG_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-else
-  IMG_PATH="$BUILD_DIR/maser_buoy_build.img"
-fi
+# Parse --url
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --url)
+      FILE_URL="$2"
+      shift 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
-if [ ! -f "$IMG_PATH" ]; then
-  echo "ERROR: Image not found: $IMG_PATH"
-  echo "  Build first: ./image/build-with-docker.sh"
-  echo "  Or pass the path: $0 /path/to/maser_buoy_build.img"
-  exit 1
+if [ -z "$FILE_URL" ]; then
+  if [ -n "$1" ]; then
+    IMG_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+  else
+    IMG_PATH="$BUILD_DIR/maser_buoy_build.img"
+  fi
+  if [ ! -f "$IMG_PATH" ]; then
+    echo "ERROR: Image not found: $IMG_PATH"
+    echo "  Build first: ./image/build-with-docker.sh"
+    echo "  Or pass the path: $0 /path/to/maser_buoy_build.img"
+    echo "  Or use --url for release manifests: $0 --url 'https://...'"
+    exit 1
+  fi
+  FILE_URL="file://${IMG_PATH}"
 fi
 
 mkdir -p "$(dirname "$OUTPUT_MANIFEST")"
-
-# Pi Imager expects file:// URLs for local images
-FILE_URL="file://${IMG_PATH}"
 
 # init_format: cloudinit-rpi matches Raspberry Pi OS Trixie (our base)
 # This enables hostname, SSH customization. Do NOT configure WiFi in the gear—

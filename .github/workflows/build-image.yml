@@ -1,0 +1,79 @@
+# Build Maser Buoy SD image and create GitHub Release
+# Manual trigger only (image build takes ~30-60 min)
+name: Build Image and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. v0.1.0)"
+        required: true
+        default: "v0.1.0"
+      legacy:
+        description: "Use Raspberry Pi OS Legacy (Bookworm) base"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv sync
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h
+
+      - name: Download base image
+        run: |
+          if [ "${{ github.event.inputs.legacy }}" = "true" ]; then
+            uv run download-base --legacy
+          else
+            uv run download-base
+          fi
+        env:
+          UV_COMPILE_BYTECODE: 0
+
+      - name: Build image
+        run: uv run build-image
+        env:
+          UV_COMPILE_BYTECODE: 0
+
+      - name: Create manifest for release
+        run: |
+          REPO_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version }}"
+          uv run create-manifest --url "${REPO_URL}/maser_buoy_build.img.xz"
+        env:
+          UV_COMPILE_BYTECODE: 0
+
+      - name: Compress image
+        run: |
+          cd build
+          xz -z -9 -T0 maser_buoy_build.img
+          ls -lh maser_buoy_build.img.xz maser_buoy.rpi-imager-manifest
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Maser Buoy ${{ github.event.inputs.version }}
+          draft: false
+          generate_release_notes: true
+          files: |
+            build/maser_buoy_build.img.xz
+            build/maser_buoy.rpi-imager-manifest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
