@@ -76,19 +76,15 @@ chroot "$MNT" /bin/bash -c '
   ansible-playbook -i localhost, -c local playbook.yml -e docker_image_build=true
 ' || true
 
-echo "[*] Starting Docker daemon in chroot and re-running playbook for docker compose..."
+echo "[*] Starting Docker daemon in chroot, building ROS image, and saving for offline first boot..."
 chroot "$MNT" /bin/bash -c '
   apt-get -qq clean
   dockerd --storage-driver=vfs &
   sleep 15
   cd /opt/maser_buoy/ansible
   ansible-playbook -i localhost, -c local playbook.yml -e docker_image_build=true
-  kill %1 2>/dev/null || true
-' || true
-
-echo "[*] Saving Docker images for offline first boot..."
-chroot "$MNT" /bin/bash -c '
   cd /opt/maser_buoy/docker 2>/dev/null && docker save -o docker_images.tar $(docker compose images -q) 2>/dev/null || true
+  kill %1 2>/dev/null || true
 ' || true
 
 echo "[*] Setting offline_first_boot back to true..."

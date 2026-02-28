@@ -67,6 +67,12 @@
     - docker_tar.stat.exists | default(false) | bool
   ignore_errors: true
 
+- name: Build ROS 2 image (during image build; docker_image_build=true)
+  ansible.builtin.command:
+    cmd: docker compose build
+    chdir: "{{ maser_buoy_root }}/docker"
+  when: docker_image_build | default(false) | bool
+
 - name: Start ROS 2 + rosbridge with Docker Compose (with build, requires network)
   ansible.builtin.command:
     cmd: docker compose up -d --build

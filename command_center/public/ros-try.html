@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROS Listen & Publish – Maser Buoy</title>
+  <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a2e; color: #eee; max-width: 720px; margin: 0 auto; }
+    .header { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .header h1 { margin: 0; font-size: 1.25rem; }
+    .status { font-size: 0.9rem; padding: 0.25rem 0.6rem; border-radius: 4px; font-weight: 500; }
+    .status.connected { background: #27ae60; color: #fff; }
+    .status.disconnected { background: #c0392b; color: #fff; }
+    .status.checking { background: #f39c12; color: #000; }
+    .nav { margin-bottom: 1.5rem; }
+    .nav a { color: #7f8c8d; text-decoration: none; font-size: 0.9rem; }
+    .nav a:hover { color: #74b9ff; }
+    .panel { background: #16213e; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .panel h2 { margin: 0 0 0.75rem 0; font-size: 1rem; color: #74b9ff; }
+    .messages { max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; }
+    .msg { padding: 0.25rem 0; border-bottom: 1px solid #2d2d44; }
+    .msg:last-child { border-bottom: none; }
+    .msg time { color: #7f8c8d; font-size: 0.8rem; margin-right: 0.5rem; }
+    .publish-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .publish-row input { flex: 1; padding: 0.5rem; border-radius: 4px; border: 1px solid #2d2d44; background: #1a1a2e; color: #eee; font-size: 1rem; }
+    .publish-row button { padding: 0.5rem 1rem; border-radius: 4px; border: none; background: #3498db; color: #fff; cursor: pointer; font-weight: 500; }
+    .publish-row button:hover { background: #2980b9; }
+    .publish-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .topic-config { margin-bottom: 0.75rem; font-size: 0.9rem; }
+    .topic-config label { color: #7f8c8d; }
+    .topic-config input { padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid #2d2d44; background: #1a1a2e; color: #eee; width: 200px; }
+    .error { color: #e74c3c; font-size: 0.9rem; margin-top: 0.5rem; }
+    a { color: #74b9ff; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ROS Listen & Publish</h1>
+    <span id="status" class="status checking">Connecting…</span>
+  </div>
+  <p class="nav"><a href="/">← Command Center</a></p>
+  <p>Subscribe to messages and publish to topics. All devices on the buoy's WiFi share the same ROS network—messages you publish appear on other devices' listeners.</p>
+
+  <div class="panel">
+    <h2>Listen (subscribe)</h2>
+    <div class="topic-config">
+      <label>Topic: </label><input id="listen-topic" type="text" value="/chatter" placeholder="/chatter">
+    </div>
+    <div id="messages" class="messages">Waiting for messages…</div>
+  </div>
+
+  <div class="panel">
+    <h2>Publish</h2>
+    <div class="topic-config">
+      <label>Topic: </label><input id="pub-topic" type="text" value="/chatter" placeholder="/chatter">
+    </div>
+    <div class="publish-row">
+      <input id="pub-input" type="text" placeholder="Type a message…" maxlength="500">
+      <button id="pub-btn" disabled>Publish</button>
+    </div>
+    <div id="pub-error" class="error" style="display:none"></div>
+  </div>
+
+  <script>
+    (function() {
+      const wsUrl = 'ws://' + window.location.hostname + ':9090';
+      const ros = new ROSLIB.Ros({ url: wsUrl });
+      const statusEl = document.getElementById('status');
+      const messagesEl = document.getElementById('messages');
+      const pubInput = document.getElementById('pub-input');
+      const pubBtn = document.getElementById('pub-btn');
+      const listenTopicInput = document.getElementById('listen-topic');
+      const pubTopicInput = document.getElementById('pub-topic');
+      const pubErrorEl = document.getElementById('pub-error');
+
+      let listener = null;
+      let publisher = null;
+
+      function setStatus(cls, text) {
+        statusEl.className = 'status ' + cls;
+        statusEl.textContent = text;
+      }
+
+      function addMessage(topic, data) {
+        const msg = document.createElement('div');
+        msg.className = 'msg';
+        const time = new Date().toLocaleTimeString();
+        const text = typeof data === 'string' ? data : (data.data !== undefined ? data.data : JSON.stringify(data));
+        msg.innerHTML = '<time>' + time + '</time>' + escapeHtml(text);
+        messagesEl.appendChild(msg);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        if (messagesEl.querySelectorAll('.msg').length > 100) {
+          messagesEl.removeChild(messagesEl.firstChild);
+        }
+      }
+
+      function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      function subscribe() {
+        if (listener) listener.unsubscribe();
+        const topic = listenTopicInput.value.trim() || '/chatter';
+        listener = new ROSLIB.Topic({ ros: ros, name: topic, messageType: 'std_msgs/msg/String' });
+        listener.subscribe(function(msg) {
+          if (!messagesEl.querySelector('.msg')) messagesEl.innerHTML = '';
+          addMessage(topic, msg.data);
+        });
+      }
+
+      function setupPublisher() {
+        const topic = pubTopicInput.value.trim() || '/chatter';
+        publisher = new ROSLIB.Topic({ ros: ros, name: topic, messageType: 'std_msgs/msg/String' });
+      }
+
+      ros.on('connection', function() {
+        setStatus('connected', 'Connected');
+        pubBtn.disabled = false;
+        pubErrorEl.style.display = 'none';
+        subscribe();
+        setupPublisher();
+      });
+
+      ros.on('error', function() {
+        setStatus('disconnected', 'Disconnected');
+        pubBtn.disabled = true;
+      });
+
+      ros.on('close', function() {
+        setStatus('disconnected', 'Disconnected');
+        pubBtn.disabled = true;
+      });
+
+      listenTopicInput.addEventListener('change', subscribe);
+      listenTopicInput.addEventListener('blur', subscribe);
+
+      pubTopicInput.addEventListener('change', setupPublisher);
+      pubTopicInput.addEventListener('blur', setupPublisher);
+
+      pubBtn.addEventListener('click', function() {
+        const text = pubInput.value.trim();
+        if (!text) return;
+        pubErrorEl.style.display = 'none';
+        try {
+          const topic = pubTopicInput.value.trim() || '/chatter';
+          const pub = new ROSLIB.Topic({ ros: ros, name: topic, messageType: 'std_msgs/msg/String' });
+          pub.publish(new ROSLIB.Message({ data: text }));
+          pubInput.value = '';
+        } catch (e) {
+          pubErrorEl.textContent = e.message || 'Publish failed';
+          pubErrorEl.style.display = 'block';
+        }
+      });
+
+      pubInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') pubBtn.click();
+      });
+    })();
+  </script>
+</body>
+</html>

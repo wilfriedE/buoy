@@ -130,7 +130,11 @@ In the browser, use a bundler or load roslib from a CDN.
 
 ---
 
-## 5. Viewing the ROS topic graph
+## 5. Listen and publish from the browser
+
+From the command center, open **Listen & Publish** to subscribe to topics and publish messages. All devices on the buoy's WiFi share the same ROS network—messages you publish appear on other devices' listeners. Uses the `/chatter` topic by default (std_msgs/msg/String).
+
+## 6. Viewing the ROS topic graph
 
 From the command center page, open **Topic graph** to see an embedded viewer (open source: roslibjs + vis-network) that shows nodes, topics, and connections over rosbridge. No external tools required.
 
@@ -138,6 +142,6 @@ Alternatively, you can use **Foxglove Studio** at [studio.foxglove.dev](https://
 
 ---
 
-## 6. Local hostnames (.buoy)
+## 7. Local hostnames (.buoy)
 
 Devices that get an IP from the hub’s DHCP may be resolvable as `hostname.buoy` if the hub is configured that way. Ask your hub operator which names are available. The hub itself is `maser.buoy` or `hub.buoy`.
