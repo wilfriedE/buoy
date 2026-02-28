@@ -82,7 +82,7 @@
     name: hostapd
     state: started
     enabled: true
-    unmask: true
+    masked: false
     daemon_reload: true
 
 - name: Enable and start dnsmasq

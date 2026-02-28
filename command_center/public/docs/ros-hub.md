@@ -10,7 +10,8 @@ This guide is for **users** who connect to a Maser Buoy hub (WiFi and web dashbo
 2. **IP and DNS** – Your device will get an IP via DHCP. The hub is the DNS server. You can reach it by:
    - **Hostname:** `maser.buoy` or `hub.buoy`
    - **IP:** usually `10.3.141.1` (confirm on the command center page)
-3. **Command center** – Open a browser and go to `http://maser.buoy:8080` (or the IP and port shown after connecting). You'll see the dashboard with connected devices and a link to the ROS topic graph (e.g. Foxglove Studio).
+3. **Command center** – Open a browser and go to `http://maser.buoy:8080` (or the IP and port shown after connecting). You'll see the dashboard with connected devices and a link to the ROS topic graph.
+4. **SSH** – To access the Raspberry Pi over SSH: `ssh maser@maser.buoy` (or `ssh maser@10.3.141.1`). Default password: `ChangeMe`. Ask the hub operator for credentials if they were changed during setup.
 
 ---
 
@@ -131,7 +132,9 @@ In the browser, use a bundler or load roslib from a CDN.
 
 ## 5. Viewing the ROS topic graph
 
-From the command center page you can open **Foxglove Studio** (or the link provided there), connect to **Rosbridge** with URL `ws://maser.buoy:9090`, and use the **Topic Graph** panel to see nodes, topics, and connections. This helps you discover topic names and node layout when interacting with ROS devices.
+From the command center page, open **Topic graph** to see an embedded viewer (open source: roslibjs + vis-network) that shows nodes, topics, and connections over rosbridge. No external tools required.
+
+Alternatively, you can use **Foxglove Studio** at [studio.foxglove.dev](https://studio.foxglove.dev), connect to **Rosbridge** with URL `ws://maser.buoy:9090`, and use the Topic Graph panel.
 
 ---
 

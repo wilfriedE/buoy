@@ -12,6 +12,7 @@ Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local 
 
 ## Quick links
 
+- **[Changelog](CHANGELOG.md)** – Notable changes and migration notes
 - **[User guide: connecting and interacting with ROS devices](docs/ros-hub.md)** – For users of the hub: connect to WiFi, run ROS 2 nodes, use rosbridge (Python, JavaScript, TypeScript examples)
 - **[Image build: flash and first boot](image/README.md)** – Build the image (with network once); first boot on the Pi runs offline. Use the **headless** (Lite/server) base OS.
 - **[Build image with QEMU](image/BUILD-QEMU.md)** – Build the image on a PC (Linux, macOS, or Windows via WSL2) using QEMU emulation—no Raspberry Pi required. **Easiest with Docker:** run `./image/build-with-docker.sh` (see [image/README.md](image/README.md)).

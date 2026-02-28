@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROS 2 Topic Graph – Maser Buoy</title>
+  <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+  <script src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #1a1a2e; color: #eee; }
+    .header { padding: 1rem; border-bottom: 1px solid #2d2d44; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .header h1 { margin: 0; font-size: 1.25rem; }
+    .status { font-size: 0.9rem; padding: 0.25rem 0.5rem; border-radius: 4px; }
+    .status.connected { background: #27ae60; color: #fff; }
+    .status.disconnected { background: #c0392b; color: #fff; }
+    .status.loading { background: #f39c12; color: #000; }
+    #graph { width: 100%; height: calc(100vh - 60px); }
+    .controls { display: flex; gap: 0.5rem; align-items: center; }
+    .controls button { padding: 0.4rem 0.8rem; border-radius: 4px; border: none; background: #3498db; color: #fff; cursor: pointer; font-size: 0.9rem; }
+    .controls button:hover { background: #2980b9; }
+    .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error { padding: 1rem; color: #e74c3c; }
+    a { color: #74b9ff; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ROS 2 Topic Graph</h1>
+    <span id="status" class="status disconnected">Disconnected</span>
+    <div class="controls">
+      <button id="refresh" disabled>Refresh</button>
+      <a href="/">← Command Center</a>
+    </div>
+  </div>
+  <div id="graph"></div>
+  <div id="error" class="error" style="display:none"></div>
+
+  <script>
+    (function() {
+      const wsHost = window.location.hostname;
+      const wsUrl = 'ws://' + wsHost + ':9090';
+      const statusEl = document.getElementById('status');
+      const graphEl = document.getElementById('graph');
+      const errorEl = document.getElementById('error');
+      const refreshBtn = document.getElementById('refresh');
+
+      function setStatus(cls, text) {
+        statusEl.className = 'status ' + cls;
+        statusEl.textContent = text;
+      }
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+      }
+
+      function hideError() {
+        errorEl.style.display = 'none';
+      }
+
+      const ros = new ROSLIB.Ros({ url: wsUrl });
+
+      ros.on('connection', function() {
+        setStatus('connected', 'Connected');
+        refreshBtn.disabled = false;
+        hideError();
+        loadGraph();
+      });
+
+      ros.on('error', function(err) {
+        setStatus('disconnected', 'Disconnected');
+        showError('Cannot connect to rosbridge at ' + wsUrl + '. Is the rosbridge container running?');
+      });
+
+      ros.on('close', function() {
+        setStatus('disconnected', 'Disconnected');
+      });
+
+      function callService(name, srvType, request) {
+        return new Promise(function(resolve, reject) {
+          const svc = new ROSLIB.Service({ ros: ros, name: name, serviceType: srvType });
+          const req = new ROSLIB.ServiceRequest(request || {});
+          svc.callService(req, resolve, reject);
+        });
+      }
+
+      async function loadGraph() {
+        setStatus('loading', 'Loading graph…');
+        hideError();
+        try {
+          const [topicsRes, nodesRes] = await Promise.all([
+            callService('/rosapi/topics', 'rosapi_msgs/srv/Topics', {}),
+            callService('/rosapi/nodes', 'rosapi_msgs/srv/Nodes', {})
+          ]);
+
+          const topics = topicsRes.topics || [];
+          const types = topicsRes.types || [];
+          const allNodes = new Set(nodesRes.nodes || []);
+
+          const connections = [];
+          for (let i = 0; i < topics.length; i++) {
+            const topic = topics[i];
+            const type = types[i] || '?';
+            try {
+              const [pubs, subs] = await Promise.all([
+                callService('/rosapi/publishers', 'rosapi_msgs/srv/Publishers', { topic: topic }),
+                callService('/rosapi/subscribers', 'rosapi_msgs/srv/Subscribers', { topic: topic })
+              ]);
+              (pubs.publishers || []).forEach(function(p) {
+                allNodes.add(p);
+                connections.push({ from: p, to: topic, type: type, dir: 'pub' });
+              });
+              (subs.subscribers || []).forEach(function(s) {
+                allNodes.add(s);
+                connections.push({ from: topic, to: s, type: type, dir: 'sub' });
+              });
+            } catch (e) {
+              console.warn('Could not get connections for', topic, e);
+            }
+          }
+
+          const nodes = Array.from(allNodes);
+          if (nodes.length === 0 && topics.length === 0) {
+            setStatus('connected', 'Connected (no nodes or topics)');
+            clearGraph();
+            renderEmpty();
+            return;
+          }
+
+          clearGraph();
+
+          const visNodes = new vis.DataSet();
+          const visEdges = new vis.DataSet();
+
+          nodes.forEach(function(n) {
+            visNodes.add({
+              id: n,
+              label: n,
+              group: 'node',
+              font: { color: '#eee', size: 14 },
+              color: { background: '#3498db', border: '#2980b9' },
+              shape: 'box'
+            });
+          });
+
+          topics.forEach(function(t, i) {
+            const type = types[i] || '?';
+            const shortType = type.split('/').pop();
+            visNodes.add({
+              id: t,
+              label: t + '\n' + shortType,
+              group: 'topic',
+              font: { color: '#eee', size: 12 },
+              color: { background: '#2ecc71', border: '#27ae60' },
+              shape: 'ellipse'
+            });
+          });
+
+          connections.forEach(function(c) {
+            visEdges.add({
+              from: c.from,
+              to: c.to,
+              arrows: c.dir === 'pub' ? 'to' : 'to',
+              color: { color: '#7f8c8d' }
+            });
+          });
+
+          const data = { nodes: visNodes, edges: visEdges };
+          clearGraph();
+          const options = {
+            nodes: {
+              borderWidth: 2,
+              shadow: true
+            },
+            edges: {
+              smooth: { type: 'cubicBezier' }
+            },
+            physics: {
+              enabled: true,
+              solver: 'forceAtlas2Based',
+              forceAtlas2Based: {
+                gravitationalConstant: -50,
+                centralGravity: 0.01,
+                springLength: 150,
+                springConstant: 0.08
+              }
+            },
+            interaction: {
+              dragNodes: true,
+              zoomView: true,
+              dragView: true
+            }
+          };
+
+          const network = new vis.Network(graphEl, data, options);
+          setStatus('connected', 'Connected');
+        } catch (err) {
+          setStatus('connected', 'Connected');
+          showError('Failed to load graph: ' + (err.message || err));
+          console.error(err);
+        }
+      }
+
+      function renderEmpty() {
+        graphEl.innerHTML = '<div style="padding:2rem;text-align:center;color:#7f8c8d">No ROS nodes or topics found. Start some nodes with <code>ROS_DOMAIN_ID=0</code> to see them here.</div>';
+      }
+
+      function clearGraph() {
+        graphEl.innerHTML = '';
+      }
+
+      refreshBtn.addEventListener('click', loadGraph);
+    })();
+  </script>
+</body>
+</html>

@@ -51,7 +51,9 @@ If you have **Docker Desktop**: put a Raspberry Pi OS 64-bit Lite `.img` or `.im
 
 ## Pi Imager settings (hostname, WiFi, SSH)
 
-When you use **Use custom** and select the image file directly, Pi Imager does not show the settings gear because it has no metadata for custom images. To enable hostname/WiFi/SSH customization:
+**Important:** If you use the settings gear, **do not configure WiFi**. Maser Buoy uses wlan0 as an access point (broadcasts MaserBuoy). Pi Imager's WiFi option configures the Pi as a client (to join your router), which would conflict with hostapd. Use Ethernet for initial SSH instead.
+
+When you use **Use custom** and select the image file directly, Pi Imager does not show the settings gear because it has no metadata for custom images. To enable hostname/SSH customization (skip WiFi):
 
 1. Run `./image/create-pi-imager-manifest.sh` (optionally with the image path)
 2. In Pi Imager: **App Options** (gear) → **Content Repository** → **EDIT** → **Use custom file** → select `image/maser_buoy.rpi-imager-manifest` → **APPLY & RESTART**

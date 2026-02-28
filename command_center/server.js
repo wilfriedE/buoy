@@ -5,12 +5,73 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const { marked } = require('marked');
 
 const app = express();
 const PORT = process.env.COMMAND_CENTER_PORT || 8080;
 
 // DHCP leases path (RaspAP / dnsmasq)
 const LEASES_PATH = process.env.DHCP_LEASES_PATH || '/var/lib/misc/dnsmasq.leases';
+
+const DOCS_DIR = path.join(__dirname, 'public', 'docs');
+
+// Markdown docs rendered as HTML (must be before static)
+app.get('/docs/:name.md', (req, res) => {
+  const name = req.params.name.replace(/[^a-zA-Z0-9_-]/g, '');
+  const filePath = path.join(DOCS_DIR, name + '.md');
+  const resolved = path.resolve(filePath);
+  const docsResolved = path.resolve(DOCS_DIR);
+  const isUnderDocs = resolved === docsResolved || resolved.startsWith(docsResolved + path.sep);
+  if (isUnderDocs && fs.existsSync(filePath)) {
+    const md = fs.readFileSync(filePath, 'utf8');
+    const html = marked.parse(md, { async: false });
+    const title = (html.match(/<h1[^>]*>([^<]+)<\/h1>/) || [null, name])[1] || name;
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)} – Maser Buoy</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #1a1a2e; color: #e8e8e8; line-height: 1.6; }
+    .doc { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .doc h1 { font-size: 1.75rem; margin-top: 0; border-bottom: 1px solid #2d2d44; padding-bottom: 0.5rem; }
+    .doc h2 { font-size: 1.25rem; margin-top: 2rem; color: #74b9ff; }
+    .doc h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+    .doc p { margin: 1rem 0; }
+    .doc ul, .doc ol { margin: 1rem 0; padding-left: 1.5rem; }
+    .doc li { margin: 0.25rem 0; }
+    .doc code { background: #16213e; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+    .doc pre { background: #16213e; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    .doc pre code { background: none; padding: 0; }
+    .doc hr { border: none; border-top: 1px solid #2d2d44; margin: 2rem 0; }
+    .doc a { color: #74b9ff; }
+    .doc strong { color: #fff; }
+    .nav { margin-bottom: 2rem; }
+    .nav a { color: #7f8c8d; text-decoration: none; font-size: 0.9rem; }
+    .nav a:hover { color: #74b9ff; }
+  </style>
+</head>
+<body>
+  <div class="doc">
+    <p class="nav"><a href="/">← Command Center</a></p>
+    <div class="content">${html}</div>
+  </div>
+</body>
+</html>`);
+  } else {
+    res.status(404).send('Not found');
+  }
+});
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 

@@ -16,6 +16,18 @@
     path: "{{ maser_buoy_root }}/docker/rosbridge_launch.sh"
     mode: "0755"
 
+- name: Deploy ROS container systemd unit (starts soon after dockerd on boot)
+  ansible.builtin.template:
+    src: maser-buoy-ros.service.j2
+    dest: /etc/systemd/system/maser-buoy-ros.service
+    mode: "0644"
+
+- name: Enable maser-buoy-ros service
+  ansible.builtin.systemd:
+    name: maser-buoy-ros
+    enabled: true
+    daemon_reload: true
+
 - name: Allow DDS multicast on WiFi interface (ROS 2 discovery)
   ansible.builtin.shell: |
     iptables -C INPUT -i {{ wifi_interface }} -p udp -d 239.255.0.1 -j ACCEPT 2>/dev/null || \

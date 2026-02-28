@@ -4,10 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maser Buoy – Command Center</title>
+  <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a2e; color: #eee; }
     h1 { margin-top: 0; }
+    .header { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .ros-status { font-size: 0.9rem; padding: 0.25rem 0.6rem; border-radius: 4px; font-weight: 500; }
+    .ros-status.connected { background: #27ae60; color: #fff; }
+    .ros-status.disconnected { background: #c0392b; color: #fff; }
+    .ros-status.checking { background: #f39c12; color: #000; }
     .section { margin-bottom: 1.5rem; }
     .devices { display: grid; gap: 0.5rem; }
     .device { background: #16213e; padding: 0.5rem 0.75rem; border-radius: 6px; font-family: monospace; }
@@ -16,7 +22,10 @@
   </style>
 </head>
 <body>
-  <h1>Maser Buoy – Command Center</h1>
+  <div class="header">
+    <h1>Maser Buoy – Command Center</h1>
+    <span id="ros-status" class="ros-status checking">Checking ROS…</span>
+  </div>
   <p>Hub for ROS 2 devices on this network. Connect to <code>maser.buoy</code> for the hub.</p>
 
   <div class="section">
@@ -26,9 +35,9 @@
 
   <div class="section">
     <h2>ROS 2 topic graph</h2>
-    <p>Open <a href="https://studio.foxglove.dev" target="_blank" rel="noopener">Foxglove Studio</a> and connect to <strong>Rosbridge</strong> with URL:</p>
-    <p class="ros-url"><code>ws://maser.buoy:9090</code> (or <code>ws://&lt;this-host-ip&gt;:9090</code>)</p>
-    <p>Or use the code examples in <a href="/docs/ros-hub.md">ROS Hub docs</a> (Python, JavaScript, TypeScript).</p>
+    <p><a href="/ros-graph.html"><strong>Open topic graph</strong></a> – built-in viewer (roslibjs + vis-network, open source).</p>
+    <p>Or use <a href="https://studio.foxglove.dev" target="_blank" rel="noopener">Foxglove Studio</a> with Rosbridge URL <code>ws://maser.buoy:9090</code>.</p>
+    <p>Code examples in <a href="/docs/ros-hub.md">ROS Hub docs</a> (Python, JavaScript, TypeScript).</p>
   </div>
 
   <script>
@@ -47,6 +56,34 @@
       .catch(() => {
         document.getElementById('devices').textContent = 'Could not load devices.';
       });
+
+    (function() {
+      const el = document.getElementById('ros-status');
+      const wsUrl = 'ws://' + window.location.hostname + ':9090';
+      const ros = new ROSLIB.Ros({ url: wsUrl });
+
+      function setStatus(cls, text) {
+        el.className = 'ros-status ' + cls;
+        el.textContent = text;
+      }
+
+      ros.on('connection', function() {
+        setStatus('connected', 'ROS: Connected');
+        const svc = new ROSLIB.Service({ ros: ros, name: '/rosapi/topics', serviceType: 'rosapi_msgs/srv/Topics' });
+        svc.callService(new ROSLIB.ServiceRequest({}), function(res) {
+          const n = (res.topics || []).length;
+          setStatus('connected', 'ROS: Connected (' + n + ' topic' + (n !== 1 ? 's' : '') + ')');
+        });
+      });
+
+      ros.on('error', function() {
+        setStatus('disconnected', 'ROS: Not connected');
+      });
+
+      ros.on('close', function() {
+        setStatus('disconnected', 'ROS: Not connected');
+      });
+    })();
   </script>
 </body>
 </html>

@@ -1,0 +1,18 @@
+[Unit]
+Description=Maser Buoy ROS 2 + rosbridge container
+After=docker.service
+Requires=docker.service
+# Only run when compose files exist (created by playbook on first boot)
+ConditionPathExists={{ maser_buoy_root }}/docker/compose.yml
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory={{ maser_buoy_root }}/docker
+Environment=ROS_DOMAIN_ID={{ ros_domain_id }}
+ExecStart=/usr/bin/docker compose up -d
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
