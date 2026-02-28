@@ -2,6 +2,24 @@
 # Native hostapd + dnsmasq on host (replaces RaspAP Docker – hostapd fails in Docker on Pi)
 # NetworkManager on Raspberry Pi OS manages wlan0 by default; we must unmanage it.
 
+- name: Create Buoy config directory for WiFi settings
+  ansible.builtin.file:
+    path: "{{ buoy_root }}/config"
+    state: directory
+    mode: "0755"
+
+- name: Deploy WiFi config (editable from Command Center)
+  ansible.builtin.template:
+    src: wifi.json.j2
+    dest: "{{ buoy_root }}/config/wifi.json"
+    mode: "0644"
+
+- name: Deploy hostapd config generator (reads wifi.json, used at boot and when settings change)
+  ansible.builtin.copy:
+    src: generate-hostapd-conf.py
+    dest: "{{ buoy_root }}/config/generate-hostapd-conf.py"
+    mode: "0755"
+
 - name: Stop RaspAP container if present (we use native hostapd now)
   ansible.builtin.shell: |
     docker stop raspap 2>/dev/null || true
@@ -31,11 +49,10 @@
     update_cache: true
   when: not offline_first_boot | default(false) | bool
 
-- name: Deploy hostapd config
-  ansible.builtin.template:
-    src: hostapd.conf.j2
-    dest: /etc/hostapd/hostapd.conf
-    mode: "0640"
+- name: Generate initial hostapd config from wifi.json
+  ansible.builtin.command:
+    cmd: "{{ buoy_root }}/config/generate-hostapd-conf.py"
+  changed_when: true
 
 - name: Set hostapd daemon config to use our conf file
   ansible.builtin.lineinfile:

@@ -5,13 +5,20 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
 const { marked } = require('marked');
 
 const app = express();
 const PORT = process.env.COMMAND_CENTER_PORT || 8080;
+const BUOY_ROOT = process.env.BUOY_ROOT || '/opt/buoy';
+const WIFI_CONFIG_PATH = path.join(BUOY_ROOT, 'config', 'wifi.json');
+const GENERATE_HOSTAPD_SCRIPT = path.join(BUOY_ROOT, 'config', 'generate-hostapd-conf.py');
 
 // DHCP leases path (dnsmasq)
 const LEASES_PATH = process.env.DHCP_LEASES_PATH || '/var/lib/misc/dnsmasq.leases';
+
+// JSON body parsing for POST
+app.use(express.json());
 
 const DOCS_DIR = path.join(__dirname, 'public', 'docs');
 
@@ -74,6 +81,50 @@ function escapeHtml(s) {
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// API: WiFi config (GET current, POST to update)
+app.get('/api/wifi', (req, res) => {
+  try {
+    if (fs.existsSync(WIFI_CONFIG_PATH)) {
+      const data = JSON.parse(fs.readFileSync(WIFI_CONFIG_PATH, 'utf8'));
+      res.json({ ssid: data.ssid || '', passphrase: '' }); // Never send passphrase to client
+    } else {
+      res.json({ ssid: '', passphrase: '' });
+    }
+  } catch (err) {
+    console.error('Error reading WiFi config:', err.message);
+    res.status(500).json({ error: 'Failed to read WiFi config' });
+  }
+});
+
+app.post('/api/wifi', (req, res) => {
+  const { ssid, passphrase } = req.body || {};
+  if (typeof ssid !== 'string' || ssid.trim().length === 0) {
+    res.status(400).json({ error: 'SSID is required' });
+    return;
+  }
+  if (typeof passphrase === 'string' && passphrase.length > 0 && (passphrase.length < 8 || passphrase.length > 63)) {
+    res.status(400).json({ error: 'Password must be 8–63 characters' });
+    return;
+  }
+  try {
+    let data = {};
+    if (fs.existsSync(WIFI_CONFIG_PATH)) {
+      data = JSON.parse(fs.readFileSync(WIFI_CONFIG_PATH, 'utf8'));
+    }
+    data.ssid = ssid.trim();
+    if (typeof passphrase === 'string' && passphrase.length > 0) {
+      data.passphrase = passphrase;
+    }
+    fs.writeFileSync(WIFI_CONFIG_PATH, JSON.stringify(data, null, 2), 'utf8');
+    execSync(GENERATE_HOSTAPD_SCRIPT, { stdio: 'inherit' });
+    execSync('systemctl restart hostapd', { stdio: 'inherit' });
+    res.json({ success: true, ssid: data.ssid });
+  } catch (err) {
+    console.error('Error updating WiFi:', err.message);
+    res.status(500).json({ error: 'Failed to update WiFi: ' + err.message });
+  }
+});
 
 // API: connected devices from DHCP leases
 app.get('/api/devices', (req, res) => {

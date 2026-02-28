@@ -1,0 +1,7 @@
+{
+  "ssid": {{ wifi_ssid | tojson }},
+  "passphrase": {{ wifi_passphrase | tojson }},
+  "interface": {{ wifi_interface | tojson }},
+  "country": {{ wifi_country | default('US') | tojson }},
+  "channel": {{ wifi_ap_channel | default(6) }}
+}

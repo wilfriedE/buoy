@@ -4,7 +4,7 @@ Before=hostapd.service dnsmasq.service
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c 'ip addr add 10.3.141.1/24 dev {{ wifi_interface }} 2>/dev/null; ip link set {{ wifi_interface }} up'
+ExecStart=/bin/sh -c 'ip addr add 10.3.141.1/24 dev {{ wifi_interface }} 2>/dev/null; ip link set {{ wifi_interface }} up; {{ buoy_root }}/config/generate-hostapd-conf.py'
 RemainAfterExit=yes
 
 [Install]
