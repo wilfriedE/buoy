@@ -1,0 +1,36 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Soft Background for Avatar/Favicon use -->
+<circle cx="256" cy="256" r="240" fill="#F0F9FF"/>
+
+<!-- Water Surface Ripple -->
+
+<path d="M160 380C160 380 200 365 256 365C312 365 352 380 352 380" stroke="#0077B6" stroke-width="16" stroke-linecap="round"/>
+
+<!-- Buoy Base (The "Blob" shape for cuteness) -->
+
+<path d="M190 320C190 280 210 260 256 260C302 260 322 280 322 320V380C322 410 292.386 430 256 430C219.614 430 190 410 190 380V320Z" fill="#0077B6"/>
+
+<!-- Friendly White Stripe -->
+
+<path d="M190 315H322V355H190V315Z" fill="white"/>
+
+<!-- Tapered Mast -->
+
+<path d="M236 260L248 180H264L276 260H236Z" fill="#0077B6"/>
+
+<!-- The Light / Central Node -->
+
+<circle cx="256" cy="165" r="22" fill="#FF6B6B"/>
+
+<!-- WiFi Signal Arcs (Rounded and Bold) -->
+
+<!-- Inner Arc -->
+
+<path d="M220 135C230 120 282 120 292 135" stroke="#FF6B6B" stroke-width="12" stroke-linecap="round" fill="none"/>
+<!-- Outer Arc -->
+<path d="M195 105C215 80 297 80 317 105" stroke="#FF6B6B" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.5"/>
+
+<!-- Soft Highlight for Depth -->
+
+<path d="M210 325V345" stroke="white" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+</svg>
