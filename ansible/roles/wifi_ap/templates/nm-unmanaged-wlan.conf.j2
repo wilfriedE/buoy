@@ -1,0 +1,3 @@
+# Tell NetworkManager to not manage {{ wifi_interface }} so hostapd can use it for the AP.
+[keyfile]
+unmanaged-devices=interface-name:{{ wifi_interface }}

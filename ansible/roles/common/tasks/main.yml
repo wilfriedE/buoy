@@ -6,6 +6,29 @@
     enabled: true
   ignore_errors: true
 
+- name: Create SSH user with password (for headless login)
+  ansible.builtin.user:
+    name: "{{ maser_buoy_ssh_user }}"
+    password: "{{ maser_buoy_ssh_password | password_hash('sha512') }}"
+    groups: sudo
+    append: true
+    shell: /bin/bash
+    create_home: true
+  when: maser_buoy_ssh_user is defined and maser_buoy_ssh_user | length > 0
+
+- name: Disable userconfig first-boot prompt (we use maser, not pi)
+  ansible.builtin.systemd:
+    name: userconfig
+    enabled: false
+    state: stopped
+  ignore_errors: true
+
+- name: Remove pi user to reduce confusion
+  ansible.builtin.user:
+    name: pi
+    state: absent
+    remove: true
+
 - name: Set hostname
   ansible.builtin.hostname:
     name: "{{ maser_buoy_hostname }}"

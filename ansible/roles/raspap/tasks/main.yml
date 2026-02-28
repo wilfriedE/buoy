@@ -1,5 +1,19 @@
 ---
 # RaspAP via Docker (ghcr.io/raspap/raspap-docker). Image can be pre-baked so first boot needs no network.
+# NetworkManager on Raspberry Pi OS manages wlan0 by default; we must unmanage it so hostapd can use it for the AP.
+
+- name: Configure NetworkManager to unmanage WiFi interface for RaspAP
+  ansible.builtin.template:
+    src: nm-unmanaged-wlan.conf.j2
+    dest: /etc/NetworkManager/conf.d/99-unmanaged-{{ wifi_interface }}.conf
+    mode: "0644"
+  register: nm_unmanaged_config
+
+- name: Reload NetworkManager to apply unmanaged config
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: reloaded
+  when: nm_unmanaged_config.changed
 
 - name: Ensure RaspAP dnsmasq mount dir exists
   ansible.builtin.file:
@@ -38,6 +52,14 @@
     iptables -C FORWARD -i {{ raspap_upstream_interface }} -o {{ wifi_interface }} -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || iptables -A FORWARD -i {{ raspap_upstream_interface }} -o {{ wifi_interface }} -m state --state RELATED,ESTABLISHED -j ACCEPT
     iptables -C FORWARD -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT 2>/dev/null || iptables -A FORWARD -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT
   when: not docker_image_build | default(false) | bool
+  changed_when: false
+
+- name: Bring WiFi interface down so hostapd can take it (RaspAP will bring it up)
+  ansible.builtin.command:
+    cmd: ip link set {{ wifi_interface }} down
+  when:
+    - not docker_image_build | default(false) | bool
+  ignore_errors: true
   changed_when: false
 
 - name: Start RaspAP container with compose

@@ -1,0 +1,12 @@
+{
+  "os_list": [
+    {
+      "name": "Maser Buoy",
+      "description": "Headless ROS 2 hub with RaspAP WiFi, .buoy DNS, command center",
+      "url": "file:///Users/macheonia/Code/maser_buoy/image/maser_buoy_build.img",
+      "init_format": "cloudinit-rpi",
+      "devices": ["pi5-64bit", "pi4-64bit", "pi3-64bit"],
+      "capabilities": ["rpi_connect"]
+    }
+  ]
+}

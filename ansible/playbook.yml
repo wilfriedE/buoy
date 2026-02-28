@@ -10,7 +10,7 @@
     - common
     - docker
     - local_dns
-    - raspap
+    - wifi_ap
     - ros2_docker
     - command_center
     - captive_portal

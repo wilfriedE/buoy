@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Maser Buoy dashboard – ROS topic graph and connected devices",
   "main": "server.js",
+  "packageManager": "pnpm@9.14.2",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"

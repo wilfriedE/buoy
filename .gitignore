@@ -11,3 +11,6 @@ wheels/
 
 # Images
 *.img
+
+# Node
+node_modules/

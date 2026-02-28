@@ -1,0 +1,4 @@
+# Tell NetworkManager to not manage {{ wifi_interface }} so RaspAP/hostapd can use it for the AP.
+# Without this, NetworkManager may hold the interface and prevent the RaspAP container from broadcasting.
+[keyfile]
+unmanaged-devices=interface-name:{{ wifi_interface }}

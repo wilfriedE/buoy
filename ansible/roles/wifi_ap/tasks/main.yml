@@ -1,0 +1,93 @@
+---
+# Native hostapd + dnsmasq on host (replaces RaspAP Docker – hostapd fails in Docker on Pi)
+# NetworkManager on Raspberry Pi OS manages wlan0 by default; we must unmanage it.
+
+- name: Stop RaspAP container if present (we use native hostapd now)
+  ansible.builtin.shell: |
+    docker stop raspap 2>/dev/null || true
+    docker rm raspap 2>/dev/null || true
+  when: not docker_image_build | default(false) | bool
+  changed_when: false
+
+- name: Configure NetworkManager to unmanage WiFi interface
+  ansible.builtin.template:
+    src: nm-unmanaged-wlan.conf.j2
+    dest: /etc/NetworkManager/conf.d/99-unmanaged-{{ wifi_interface }}.conf
+    mode: "0644"
+  register: nm_unmanaged_config
+
+- name: Reload NetworkManager to apply unmanaged config
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: reloaded
+  when: nm_unmanaged_config.changed
+
+- name: Install hostapd and dnsmasq
+  ansible.builtin.apt:
+    name:
+      - hostapd
+      - dnsmasq
+    state: present
+    update_cache: true
+  when: not offline_first_boot | default(false) | bool
+
+- name: Deploy hostapd config
+  ansible.builtin.template:
+    src: hostapd.conf.j2
+    dest: /etc/hostapd/hostapd.conf
+    mode: "0640"
+
+- name: Set hostapd daemon config to use our conf file
+  ansible.builtin.lineinfile:
+    path: /etc/default/hostapd
+    regexp: '^#?DAEMON_CONF='
+    line: 'DAEMON_CONF="/etc/hostapd/hostapd.conf"'
+  register: hostapd_default
+
+- name: Deploy dnsmasq AP config (DHCP on wlan0)
+  ansible.builtin.template:
+    src: dnsmasq-ap.conf.j2
+    dest: /etc/dnsmasq.d/090_wifi_ap.conf
+    mode: "0644"
+
+- name: Deploy systemd unit to configure wlan0 IP before hostapd
+  ansible.builtin.template:
+    src: wifi-ap-setup.service.j2
+    dest: /etc/systemd/system/wifi-ap-setup.service
+    mode: "0644"
+
+- name: Enable and start wifi-ap-setup (configures wlan0)
+  ansible.builtin.systemd:
+    name: wifi-ap-setup
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Enable IP forwarding
+  ansible.builtin.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+
+- name: Add iptables NAT for WiFi clients to LAN/internet
+  ansible.builtin.shell: |
+    iptables -t nat -C POSTROUTING -o {{ raspap_upstream_interface }} -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -o {{ raspap_upstream_interface }} -j MASQUERADE
+    iptables -C FORWARD -i {{ raspap_upstream_interface }} -o {{ wifi_interface }} -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || iptables -A FORWARD -i {{ raspap_upstream_interface }} -o {{ wifi_interface }} -m state --state RELATED,ESTABLISHED -j ACCEPT
+    iptables -C FORWARD -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT 2>/dev/null || iptables -A FORWARD -i {{ wifi_interface }} -o {{ raspap_upstream_interface }} -j ACCEPT
+  when: not docker_image_build | default(false) | bool
+  changed_when: false
+
+- name: Unmask and enable hostapd
+  ansible.builtin.systemd:
+    name: hostapd
+    state: started
+    enabled: true
+    unmask: true
+    daemon_reload: true
+
+- name: Enable and start dnsmasq
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: started
+    enabled: true
+    daemon_reload: true

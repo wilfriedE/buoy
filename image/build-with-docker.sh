@@ -60,19 +60,10 @@ fi
 echo "[*] Creating writable copy: maser_buoy_build.img"
 cp -f "$INPUT_IMG" "$OUTPUT_IMG"
 
-# --- Pre-pull RaspAP Docker image so the baked image works offline on first boot ---
-RASPAP_TAR="$IMAGE_DIR/raspap-docker.tar"
-if [ ! -f "$RASPAP_TAR" ]; then
-  echo "[*] Pulling RaspAP Docker image (linux/arm64) for offline first boot..."
-  docker pull --platform linux/arm64 ghcr.io/raspap/raspap-docker:latest
-  docker save -o "$RASPAP_TAR" ghcr.io/raspap/raspap-docker:latest
-else
-  echo "[*] Using existing RaspAP image tarball (delete to re-pull): $RASPAP_TAR"
-fi
-
 # --- Run privileged container ---
+# --cgroupns=host gives the chroot access to host cgroups so Docker may start (Linux; on macOS this may still fail)
 echo "[*] Running build in Docker (this may take a long time)..."
-docker run --rm --privileged \
+docker run --rm --privileged --cgroupns=host \
   -v "$REPO_ROOT:/repo:ro" \
   -v "$IMAGE_DIR:/work:rw" \
   -v "$SCRIPT_DIR/docker-build-inner.sh:/run-inner.sh:ro" \

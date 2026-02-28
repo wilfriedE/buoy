@@ -1,0 +1,15 @@
+# Maser Buoy – WiFi AP (native hostapd)
+interface={{ wifi_interface }}
+driver=nl80211
+ssid={{ wifi_ssid }}
+channel={{ wifi_ap_channel | default(6) }}
+hw_mode=g
+wpa=2
+wpa_passphrase={{ wifi_passphrase }}
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP
+rsn_pairwise=CCMP
+auth_algs=1
+country_code={{ wifi_country | default('US') }}
+ctrl_interface=/var/run/hostapd
+ctrl_interface_group=0

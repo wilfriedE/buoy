@@ -60,13 +60,7 @@ cp /etc/resolv.conf "$MNT/etc/resolv.conf"
 
 echo "[*] Copying repo to /opt/maser_buoy in image..."
 mkdir -p "$MNT/opt/maser_buoy"
-rsync -a --exclude=.git --exclude=.venv --exclude='*.img' --exclude='*.img.xz' "$REPO/" "$MNT/opt/maser_buoy/"
-# Copy pre-pulled RaspAP image tarball for offline first boot
-if [ -f "$WORK/raspap-docker.tar" ]; then
-  mkdir -p "$MNT/opt/maser_buoy/docker"
-  cp "$WORK/raspap-docker.tar" "$MNT/opt/maser_buoy/docker/"
-  echo "[*] Copied RaspAP Docker image tarball into image for offline first boot."
-fi
+rsync -a --exclude=.git --exclude=.venv --exclude=node_modules --exclude='*.img' --exclude='*.img.xz' "$REPO/" "$MNT/opt/maser_buoy/"
 
 echo "[*] Setting offline_first_boot to false for build..."
 sed -i 's/offline_first_boot: true/offline_first_boot: false/' "$MNT/opt/maser_buoy/ansible/group_vars/all.yml"
