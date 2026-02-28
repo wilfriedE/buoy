@@ -1,5 +1,5 @@
 /**
- * Maser Buoy command center – serves dashboard and proxies device list API.
+ * Buoy command center – serves dashboard and proxies device list API.
  * Connects to rosbridge at localhost:9090 for the frontend.
  */
 const express = require('express');
@@ -31,7 +31,7 @@ app.get('/docs/:name.md', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)} – Maser Buoy</title>
+  <title>${escapeHtml(title)} – Buoy</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #1a1a2e; color: #e8e8e8; line-height: 1.6; }
@@ -105,5 +105,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Maser Buoy command center at http://0.0.0.0:${PORT}`);
+  console.log(`Buoy command center at http://0.0.0.0:${PORT}`);
 });

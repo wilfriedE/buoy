@@ -1,8 +1,8 @@
 ---
-# Maser Buoy – run on the Pi via ansible-pull or local ansible-playbook
-# Usage: ansible-pull -U <repo_url> -C main -i localhost, -d /tmp/maser_buoy playbook.yml
+# Buoy – run on the Pi via ansible-pull or local ansible-playbook
+# Usage: ansible-pull -U <repo_url> -C main -i localhost, -d /tmp/buoy playbook.yml
 #    or: ansible-playbook -i localhost, -c local playbook.yml
-- name: Configure Maser Buoy hub
+- name: Configure Buoy hub
   hosts: localhost
   connection: local
   gather_facts: true

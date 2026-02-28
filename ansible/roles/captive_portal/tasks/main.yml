@@ -17,7 +17,7 @@
     mode: "0755"
   when: captive_portal_enable | default(true) | bool
 
-- name: Deploy Nodogsplash config for Maser Buoy (redirect to command center)
+- name: Deploy Nodogsplash config for Buoy (redirect to command center)
   ansible.builtin.template:
     src: nodogsplash.conf.j2
     dest: /etc/nodogsplash/nodogsplash.conf

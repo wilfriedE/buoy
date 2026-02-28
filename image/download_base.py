@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Download Raspberry Pi OS Lite (64-bit) base image for Maser Buoy builds.
+Download Raspberry Pi OS Lite (64-bit) base image for Buoy builds.
 
 Uses the official Raspberry Pi os_list_imagingutility_v4.json manifest to find
 the latest Lite image URL. Saves to image/base/ (gitignored).
@@ -43,7 +43,7 @@ def find_image_url(data: dict, name: str) -> dict | None:
 
 def download_with_progress(url: str, dest: Path, expected_sha256: str | None) -> None:
     """Download a file with progress indicator, optionally verify SHA256."""
-    req = Request(url, headers={"User-Agent": "MaserBuoy/1.0"})
+    req = Request(url, headers={"User-Agent": "Buoy/1.0"})
     with urlopen(req) as resp:
         total = int(resp.headers.get("Content-Length", 0))
         read = 0
@@ -79,7 +79,7 @@ def download_with_progress(url: str, dest: Path, expected_sha256: str | None) ->
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Download Raspberry Pi OS Lite (64-bit) base image for Maser Buoy."
+        description="Download Raspberry Pi OS Lite (64-bit) base image for Buoy."
     )
     parser.add_argument(
         "--legacy",
@@ -129,7 +129,7 @@ def main() -> None:
 
     print(f"[*] Done. Base image: {dest}")
     print("")
-    print("Build the Maser Buoy image:")
+    print("Build the Buoy image:")
     print(f"  ./image/build-with-docker.sh {dest}")
 
 

@@ -1,4 +1,4 @@
-# ROS 2 Jazzy + rosbridge_suite for Maser Buoy (arm64)
+# ROS 2 Jazzy + rosbridge_suite for Buoy (arm64)
 FROM ros:jazzy-ros-base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-jazzy-rosbridge-suite \

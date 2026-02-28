@@ -1,4 +1,4 @@
-# Build Maser Buoy SD image and create GitHub Release
+# Build Buoy SD image and create GitHub Release
 # Manual trigger only (image build takes ~30-60 min)
 name: Build Image and Release
 
@@ -55,25 +55,25 @@ jobs:
       - name: Create manifest for release
         run: |
           REPO_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version }}"
-          uv run create-manifest --url "${REPO_URL}/maser_buoy_build.img.xz"
+          uv run create-manifest --url "${REPO_URL}/buoy_build.img.xz"
         env:
           UV_COMPILE_BYTECODE: 0
 
       - name: Compress image
         run: |
           cd build
-          xz -z -9 -T0 maser_buoy_build.img
-          ls -lh maser_buoy_build.img.xz maser_buoy.rpi-imager-manifest
+          xz -z -9 -T0 buoy_build.img
+          ls -lh buoy_build.img.xz buoy.rpi-imager-manifest
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version }}
-          name: Maser Buoy ${{ github.event.inputs.version }}
+          name: Buoy ${{ github.event.inputs.version }}
           draft: false
           generate_release_notes: true
           files: |
-            build/maser_buoy_build.img.xz
-            build/maser_buoy.rpi-imager-manifest
+            build/buoy_build.img.xz
+            build/buoy.rpi-imager-manifest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

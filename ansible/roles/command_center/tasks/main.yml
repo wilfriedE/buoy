@@ -36,14 +36,14 @@
 
 - name: Create command center directory
   ansible.builtin.file:
-    path: "{{ maser_buoy_root }}/command_center"
+    path: "{{ buoy_root }}/command_center"
     state: directory
     mode: "0755"
 
 - name: Copy command center app (exclude node_modules for speed)
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../command_center/"
-    dest: "{{ maser_buoy_root }}/command_center"
+    dest: "{{ buoy_root }}/command_center"
     mode: "0644"
     exclude:
       - node_modules/
@@ -51,7 +51,7 @@
 - name: Install command center dependencies with pnpm (requires network; skip when offline_first_boot)
   ansible.builtin.command:
     cmd: pnpm install
-    chdir: "{{ maser_buoy_root }}/command_center"
+    chdir: "{{ buoy_root }}/command_center"
   environment:
     NODE_ENV: production
   changed_when: true
@@ -59,13 +59,13 @@
 
 - name: Deploy command center systemd unit
   ansible.builtin.template:
-    src: maser-buoy-command-center.service.j2
-    dest: /etc/systemd/system/maser-buoy-command-center.service
+    src: buoy-command-center.service.j2
+    dest: /etc/systemd/system/buoy-command-center.service
     mode: "0644"
 
 - name: Start and enable command center service
   ansible.builtin.systemd:
-    name: maser-buoy-command-center
+    name: buoy-command-center
     state: started
     enabled: true
     daemon_reload: true

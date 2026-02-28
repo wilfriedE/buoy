@@ -1,4 +1,4 @@
-# Maser Buoy – ROS 2 Jazzy + rosbridge with host networking
+# Buoy – ROS 2 Jazzy + rosbridge with host networking
 # So hub and WiFi devices share the same DDS multicast domain.
 services:
   ros2_rosbridge:

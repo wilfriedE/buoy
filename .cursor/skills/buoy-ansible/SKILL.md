@@ -1,9 +1,9 @@
 ---
-name: maser-buoy-ansible
-description: Manages Ansible roles and playbook for Maser Buoy Pi configuration. Use when adding roles, changing service order, or modifying docker_image_build / docker_image_prebuilt / offline_first_boot variables.
+name: buoy-ansible
+description: Manages Ansible roles and playbook for Buoy Pi configuration. Use when adding roles, changing service order, or modifying docker_image_build / docker_image_prebuilt / offline_first_boot variables.
 ---
 
-# Maser Buoy Ansible
+# Buoy Ansible
 
 ## Role Order (playbook.yml)
 
@@ -31,7 +31,7 @@ Set `offline_first_boot=false` during initial image build.
 ## Service Dependencies
 
 - **nodogsplash**: `After=wifi-ap-setup.service hostapd.service` (captive_portal systemd override)
-- **maser-buoy-ros**: `After=docker.service`
+- **buoy-ros**: `After=docker.service`
 
 ## Key Files
 

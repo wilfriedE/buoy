@@ -7,12 +7,12 @@
     mode: "0755"
   loop:
     - /etc/dnsmasq.d
-    - /opt/maser_buoy/config/dnsmasq.d
+    - /opt/buoy/config/dnsmasq.d
 
 - name: Deploy .buoy domain dnsmasq config
   ansible.builtin.template:
     src: buoy.conf.j2
-    dest: /etc/dnsmasq.d/maser_buoy_buoy.conf
+    dest: /etc/dnsmasq.d/buoy_buoy.conf
     mode: "0644"
 
 - name: Restart host dnsmasq if present (skip in Docker image build—no host dnsmasq)

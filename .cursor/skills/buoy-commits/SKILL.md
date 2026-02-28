@@ -1,9 +1,9 @@
 ---
-name: maser-buoy-commits
-description: Generates conventional commit messages for Maser Buoy. Use when writing commit messages, squashing changes, or reviewing staged diffs.
+name: buoy-commits
+description: Generates conventional commit messages for Buoy. Use when writing commit messages, squashing changes, or reviewing staged diffs.
 ---
 
-# Maser Buoy Commit Messages
+# Buoy Commit Messages
 
 ## Format
 

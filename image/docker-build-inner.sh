@@ -1,7 +1,7 @@
 #!/bin/bash
 # Runs inside the Docker container (Debian trixie, privileged).
 # Expects: /work/image.img (Raspberry Pi OS Lite image, writable copy)
-#          /repo (bind-mount of Maser Buoy repo, read-only)
+#          /repo (bind-mount of Buoy repo, read-only)
 # Builds the image by mounting root partition, chroot, and running Ansible.
 
 set -e
@@ -58,12 +58,12 @@ mount --bind /sys "$MNT/sys"
 mount --bind /dev/pts "$MNT/dev/pts"
 cp /etc/resolv.conf "$MNT/etc/resolv.conf"
 
-echo "[*] Copying repo to /opt/maser_buoy in image..."
-mkdir -p "$MNT/opt/maser_buoy"
-rsync -a --exclude=.git --exclude=.venv --exclude=node_modules --exclude=build --exclude='*.img' --exclude='*.img.xz' "$REPO/" "$MNT/opt/maser_buoy/"
+echo "[*] Copying repo to /opt/buoy in image..."
+mkdir -p "$MNT/opt/buoy"
+rsync -a --exclude=.git --exclude=.venv --exclude=node_modules --exclude=build --exclude='*.img' --exclude='*.img.xz' "$REPO/" "$MNT/opt/buoy/"
 
 echo "[*] Setting offline_first_boot to false for build..."
-sed -i 's/offline_first_boot: true/offline_first_boot: false/' "$MNT/opt/maser_buoy/ansible/group_vars/all.yml"
+sed -i 's/offline_first_boot: true/offline_first_boot: false/' "$MNT/opt/buoy/ansible/group_vars/all.yml"
 
 echo "[*] Running playbook (ROS image pre-built on host; skip compose start in chroot)..."
 # Install ansible-core only (full ansible pulls in many collections and fills the root partition)
@@ -73,7 +73,7 @@ chroot "$MNT" /bin/bash -c '
   apt-get -qq update
   apt-get -qq install -y ansible-core
   apt-get -qq clean
-  cd /opt/maser_buoy/ansible
+  cd /opt/buoy/ansible
   ansible-playbook -i localhost, -c local playbook.yml -e docker_image_build=true -e docker_image_prebuilt=true
 '
 
@@ -82,14 +82,14 @@ if [ ! -f /work/docker_images.tar ]; then
   echo "ERROR: /work/docker_images.tar not found. ROS image pre-build may have failed."
   exit 1
 fi
-cp -f /work/docker_images.tar "$MNT/opt/maser_buoy/docker/docker_images.tar"
+cp -f /work/docker_images.tar "$MNT/opt/buoy/docker/docker_images.tar"
 
 echo "[*] Setting offline_first_boot back to true..."
-sed -i 's/offline_first_boot: false/offline_first_boot: true/' "$MNT/opt/maser_buoy/ansible/group_vars/all.yml"
+sed -i 's/offline_first_boot: false/offline_first_boot: true/' "$MNT/opt/buoy/ansible/group_vars/all.yml"
 
 echo "[*] Installing first-boot systemd unit..."
-cp "$MNT/opt/maser_buoy/image/first_boot/maser-buoy-firstboot.service" "$MNT/etc/systemd/system/"
-chroot "$MNT" systemctl enable maser-buoy-firstboot.service 2>/dev/null || true
+cp "$MNT/opt/buoy/image/first_boot/buoy-firstboot.service" "$MNT/etc/systemd/system/"
+chroot "$MNT" systemctl enable buoy-firstboot.service 2>/dev/null || true
 
 echo "[*] Unmounting..."
 umount "$MNT/dev/pts" 2>/dev/null || true

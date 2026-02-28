@@ -1,9 +1,9 @@
 #!/bin/bash
-# Maser Buoy first-boot: clone repo and run Ansible playbook
+# Buoy first-boot: clone repo and run Ansible playbook
 set -e
-REPO_URL="${REPO_URL:-https://github.com/your-org/maser_buoy.git}"
+REPO_URL="${REPO_URL:-https://github.com/your-org/buoy.git}"
 BRANCH="${BRANCH:-main}"
-WORKDIR="/tmp/maser_buoy_bootstrap"
+WORKDIR="/tmp/buoy_bootstrap"
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"
 if [ ! -d .git ]; then

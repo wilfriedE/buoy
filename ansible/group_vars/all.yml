@@ -1,16 +1,16 @@
-# Maser Buoy hub – shared variables
+# Buoy hub – shared variables
 
 # Offline first boot: set to true when the Pi has no internet (e.g. field deployment).
 # Image build must be done once WITH network and offline_first_boot: false so Docker, hostapd, images, and node_modules are installed; then image the SD. Baked image then boots with offline_first_boot: true.
 offline_first_boot: true
 
-maser_buoy_hostname: maser-buoy
+buoy_hostname: buoy
 buoy_domain: buoy
 # SSH user for headless login (created by playbook)
-maser_buoy_ssh_user: maser
-maser_buoy_ssh_password: ChangeMe
+buoy_ssh_user: maser
+buoy_ssh_password: ChangeMe
 # WiFi (native hostapd)
-wifi_ssid: MaserBuoy
+wifi_ssid: Buoy
 wifi_passphrase: ChangeMe
 wifi_country: US
 wifi_interface: wlan0
@@ -26,4 +26,4 @@ command_center_port: 8080
 # Captive portal: when true, install Nodogsplash so new WiFi clients must pass a splash (command center) before full access. Set false for normal WiFi as soon as they connect.
 captive_portal_enable: false
 # Paths
-maser_buoy_root: /opt/maser_buoy
+buoy_root: /opt/buoy

@@ -1,14 +1,14 @@
 ---
-description: Core project conventions for Maser Buoy
+description: Core project conventions for Buoy
 alwaysApply: true
 ---
 
-# Maser Buoy Project Conventions
+# Buoy Project Conventions
 
 ## Build & Scripts
 
 - **UV** manages Python scripts. Use `uv run <command>` for: `build`, `download-base`, `build-image`, `create-manifest`
-- **Build outputs** go to `build/` (gitignored): `maser_buoy_build.img`, `docker_images.tar`, `maser_buoy.rpi-imager-manifest`
+- **Build outputs** go to `build/` (gitignored): `buoy_build.img`, `docker_images.tar`, `buoy.rpi-imager-manifest`
 - **Base images** go to `image/base/` (gitignored). Download via `uv run download-base`
 - **Shell scripts** in `image/` handle low-level ops (Docker, chroot, parted). Python wrappers in `image/*.py` expose them as UV entry points
 

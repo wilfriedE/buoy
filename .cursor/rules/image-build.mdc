@@ -10,13 +10,13 @@ alwaysApply: false
 
 1. **download-base** – Fetches Raspberry Pi OS Lite 64-bit from os_list API → `image/base/`
 2. **build-with-docker.sh** – Copies base to `build/`, runs ROS pre-build on host, chroots and runs Ansible
-3. **create-manifest** – Writes `build/maser_buoy.rpi-imager-manifest` for Pi Imager
+3. **create-manifest** – Writes `build/buoy.rpi-imager-manifest` for Pi Imager
 
 ## ROS Image (Critical)
 
 - **Do not** build ROS image inside chroot – dockerd fails (cgroups)
 - ROS image is built in a separate `docker run` on the host before the main chroot build
-- Output: `build/docker_images.tar` → copied into image at `/opt/maser_buoy/docker/`
+- Output: `build/docker_images.tar` → copied into image at `/opt/buoy/docker/`
 - Playbook runs with `docker_image_build=true` and `docker_image_prebuilt=true` to skip build/start tasks
 
 ## docker-build-inner.sh
@@ -24,4 +24,4 @@ alwaysApply: false
 - Runs inside privileged Debian container
 - Mounts: `/repo` (read-only), `/work` (= `build/`)
 - rsync excludes: `.git`, `.venv`, `node_modules`, `build`, `*.img`, `*.img.xz`
-- Expects `IMG=/work/maser_buoy_build.img` and `/work/docker_images.tar`
+- Expects `IMG=/work/buoy_build.img` and `/work/docker_images.tar`

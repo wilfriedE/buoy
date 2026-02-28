@@ -1,5 +1,5 @@
 [project]
-name = "maser-buoy"
+name = "buoy"
 version = "0.1.0"
 description = "Headless ROS 2 Jazzy hub for Raspberry Pi 5"
 readme = "README.md"

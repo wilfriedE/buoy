@@ -1,7 +1,7 @@
 {
-  "name": "maser-buoy-command-center",
+  "name": "buoy-command-center",
   "version": "1.0.0",
-  "description": "Maser Buoy dashboard – ROS topic graph and connected devices",
+  "description": "Buoy dashboard – ROS topic graph and connected devices",
   "main": "server.js",
   "packageManager": "pnpm@9.14.2",
   "scripts": {

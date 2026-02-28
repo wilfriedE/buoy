@@ -1,5 +1,5 @@
 [Unit]
-Description=Maser Buoy first-boot configuration
+Description=Buoy first-boot configuration
 After=network-online.target
 Wants=network-online.target
 
@@ -8,9 +8,9 @@ Type=oneshot
 RemainAfterExit=yes
 # Option A: ansible-pull from repo (set REPO_URL when installing the unit)
 # Option A: ansible-pull style – script clones repo and runs playbook (set REPO_URL in a drop-in or edit below)
-# ExecStart=/bin/bash -c 'REPO_URL=https://github.com/your-org/maser_buoy.git /opt/maser_buoy/scripts/first_boot.sh'
+# ExecStart=/bin/bash -c 'REPO_URL=https://github.com/your-org/buoy.git /opt/buoy/scripts/first_boot.sh'
 # Option B: baked playbook – no network required
-ExecStart=/bin/bash -c 'cd /opt/maser_buoy/ansible && ansible-playbook -i localhost, -c local playbook.yml'
+ExecStart=/bin/bash -c 'cd /opt/buoy/ansible && ansible-playbook -i localhost, -c local playbook.yml'
 
 [Install]
 WantedBy=multi-user.target

@@ -3,7 +3,7 @@
 # Skip during Docker image build—the unit is installed by the build script after the playbook.
 - name: Disable first-boot service
   ansible.builtin.systemd:
-    name: maser-buoy-firstboot
+    name: buoy-firstboot
     enabled: false
     state: stopped
   when: not docker_image_build | default(false) | bool
@@ -11,5 +11,5 @@
 
 - name: Mark hub as configured
   ansible.builtin.file:
-    path: /etc/maser_buoy_configured
+    path: /etc/buoy_configured
     state: touch

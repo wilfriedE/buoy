@@ -1,9 +1,9 @@
 ---
-name: maser-buoy-image-build
-description: Builds the Maser Buoy SD card image using UV scripts and Docker. Use when building the image, modifying the build pipeline, or troubleshooting image creation.
+name: buoy-image-build
+description: Builds the Buoy SD card image using UV scripts and Docker. Use when building the image, modifying the build pipeline, or troubleshooting image creation.
 ---
 
-# Maser Buoy Image Build
+# Buoy Image Build
 
 ## Quick Start
 
@@ -18,8 +18,8 @@ Runs: download-base → build-image → create-manifest.
 | Command | Purpose |
 |---------|---------|
 | `uv run download-base` | Fetch Raspberry Pi OS Lite 64-bit → `image/base/` |
-| `uv run build-image` | Build SD image → `build/maser_buoy_build.img` |
-| `uv run create-manifest` | Write `build/maser_buoy.rpi-imager-manifest` |
+| `uv run build-image` | Build SD image → `build/buoy_build.img` |
+| `uv run create-manifest` | Write `build/buoy.rpi-imager-manifest` |
 
 ## Critical Constraints
 
@@ -31,7 +31,7 @@ Runs: download-base → build-image → create-manifest.
 
 1. `build-with-docker.sh` copies base to `build/`, pre-builds ROS image on host.
 2. Chroot build runs Ansible with `docker_image_build=true` and `docker_image_prebuilt=true`.
-3. `docker_images.tar` is copied into image at `/opt/maser_buoy/docker/`.
+3. `docker_images.tar` is copied into image at `/opt/buoy/docker/`.
 
 ## Troubleshooting
 

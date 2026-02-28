@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build the full Maser Buoy image: download base (if needed), build, create manifest.
+Build the full Buoy image: download base (if needed), build, create manifest.
 
 One command to go from zero to a flashable image with Pi Imager manifest.
 
@@ -51,8 +51,8 @@ def main() -> None:
     else:
         print(f"[*] Using existing base image: {base}")
 
-    # 2. Build the Maser Buoy image
-    print("[*] Building Maser Buoy image...")
+    # 2. Build the Buoy image
+    print("[*] Building Buoy image...")
     build_script = image_dir / "build-with-docker.sh"
     subprocess.run(["bash", str(build_script)], cwd=repo_root, check=True)
 
@@ -63,7 +63,7 @@ def main() -> None:
 
     print("")
     print("Done. Flash with Raspberry Pi Imager:")
-    print("  build/maser_buoy.rpi-imager-manifest")
+    print("  build/buoy.rpi-imager-manifest")
     print("")
 
 

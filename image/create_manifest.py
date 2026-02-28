@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Create Raspberry Pi Imager manifest for the Maser Buoy image.
+Create Raspberry Pi Imager manifest for the Buoy image.
 
 Thin wrapper around image/create-pi-imager-manifest.sh. Enables the settings
 gear (hostname, SSH) when flashing with Pi Imager.
 
 Usage:
   uv run create-manifest
-  uv run create-manifest /path/to/maser_buoy_build.img
-  uv run create-manifest --url "https://github.com/.../releases/download/v1.0/maser_buoy_build.img.xz"
+  uv run create-manifest /path/to/buoy_build.img
+  uv run create-manifest --url "https://github.com/.../releases/download/v1.0/buoy_build.img.xz"
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from pathlib import Path
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create Raspberry Pi Imager manifest for Maser Buoy."
+        description="Create Raspberry Pi Imager manifest for Buoy."
     )
     parser.add_argument(
         "--url",
@@ -30,7 +30,7 @@ def main() -> None:
     parser.add_argument(
         "image_path",
         nargs="?",
-        help="Path to maser_buoy_build.img (default: build/maser_buoy_build.img)",
+        help="Path to buoy_build.img (default: build/buoy_build.img)",
     )
     args = parser.parse_args()
 

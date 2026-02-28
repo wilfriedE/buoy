@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build the Maser Buoy Raspberry Pi image.
+Build the Buoy Raspberry Pi image.
 
 Thin wrapper around image/build-with-docker.sh. Requires Docker.
 

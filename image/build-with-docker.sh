@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the Maser Buoy Raspberry Pi image using a privileged Docker container
+# Build the Buoy Raspberry Pi image using a privileged Docker container
 # (QEMU user-mode + chroot). Requires Docker Desktop (or any Docker with
 # privileged mode and loop device support).
 #
@@ -7,14 +7,14 @@
 #   ./image/build-with-docker.sh [path-to-raspios-lite.img]
 #
 # If no path is given, looks for image/*.img or image/*.img.xz (Raspberry Pi OS
-# 64-bit Trixie Lite). Output: build/maser_buoy_build.img
+# 64-bit Trixie Lite). Output: build/buoy_build.img
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IMAGE_DIR="$SCRIPT_DIR"
 BUILD_DIR="$REPO_ROOT/build"
-OUTPUT_IMG="$BUILD_DIR/maser_buoy_build.img"
+OUTPUT_IMG="$BUILD_DIR/buoy_build.img"
 
 # --- Check Docker ---
 if ! command -v docker &>/dev/null; then
@@ -61,7 +61,7 @@ fi
 mkdir -p "$BUILD_DIR"
 
 # --- Create writable copy so we don't modify the original ---
-echo "[*] Creating writable copy: maser_buoy_build.img"
+echo "[*] Creating writable copy: buoy_build.img"
 cp -f "$INPUT_IMG" "$OUTPUT_IMG"
 
 # --- Build ROS image on host (chroot cannot run dockerd; socket bind-mount is unreliable) ---
@@ -79,7 +79,7 @@ docker run --rm --privileged --cgroupns=host \
   -v "$REPO_ROOT:/repo:ro" \
   -v "$BUILD_DIR:/work:rw" \
   -v "$SCRIPT_DIR/docker-build-inner.sh:/run-inner.sh:ro" \
-  -e "IMG=/work/maser_buoy_build.img" \
+  -e "IMG=/work/buoy_build.img" \
   debian:trixie \
   bash /run-inner.sh
 

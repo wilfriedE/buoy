@@ -1,4 +1,4 @@
-# Building the Maser Buoy image with QEMU (no Raspberry Pi required)
+# Building the Buoy image with QEMU (no Raspberry Pi required)
 
 You can build the flashable image on a regular PC by running the Ansible playbook inside the Raspberry Pi OS root filesystem using **QEMU user-mode emulation** and **chroot**. This works on **Linux**, **macOS**, and **Windows (WSL2)**. The result is the same as building on a real Pi: a modified Raspberry Pi OS image you can write to an SD card.
 
@@ -13,7 +13,7 @@ You can build the flashable image on a regular PC by running the Ansible playboo
 ## Prerequisites (all platforms)
 
 - **Raspberry Pi OS 64-bit Lite image** – e.g. `2025-xx-xx-raspios-trixie-arm64-lite.img.xz` (or `.img`).
-- **Maser Buoy repo** – cloned somewhere (e.g. `~/maser_buoy`).
+- **Buoy repo** – cloned somewhere (e.g. `~/buoy`).
 - **Enough disk space** – several GB free for the image and temporary mounts.
 - **Network** – required while running the playbook inside the chroot (the chroot will use the host’s network).
 
@@ -63,8 +63,8 @@ IMG="$HOME/Downloads/2025-xx-xx-raspios-trixie-arm64-lite.img"
 Create a writable copy so the original stays intact:
 
 ```bash
-cp "$IMG" maser_buoy_build.img
-IMG=maser_buoy_build.img
+cp "$IMG" buoy_build.img
+IMG=buoy_build.img
 ```
 
 ### 3. Mount the image’s root partition
@@ -108,9 +108,9 @@ sudo cp /etc/resolv.conf /mnt/etc/resolv.conf
 ### 6. Copy the repo and set offline_first_boot
 
 ```bash
-sudo mkdir -p /mnt/opt/maser_buoy
-sudo cp -a /path/to/maser_buoy/. /mnt/opt/maser_buoy/
-sudo sed -i 's/offline_first_boot: true/offline_first_boot: false/' /mnt/opt/maser_buoy/ansible/group_vars/all.yml
+sudo mkdir -p /mnt/opt/buoy
+sudo cp -a /path/to/buoy/. /mnt/opt/buoy/
+sudo sed -i 's/offline_first_boot: true/offline_first_boot: false/' /mnt/opt/buoy/ansible/group_vars/all.yml
 ```
 
 ### 7. Chroot and run the playbook
@@ -124,14 +124,14 @@ In a minimal chroot, **systemd is not running**, so the Docker daemon may not st
 ```bash
 sudo chroot /mnt /bin/bash -c '
   apt-get update && apt-get install -y ansible
-  cd /opt/maser_buoy/ansible
+  cd /opt/buoy/ansible
   ansible-playbook -i localhost, -c local playbook.yml
 '
 # If Docker did not start (expected in chroot), start it and re-run so compose can build:
 sudo chroot /mnt /bin/bash -c '
   dockerd --storage-driver=vfs &
   sleep 15
-  cd /opt/maser_buoy/ansible && ansible-playbook -i localhost, -c local playbook.yml
+  cd /opt/buoy/ansible && ansible-playbook -i localhost, -c local playbook.yml
   kill %1
 '
 ```
@@ -143,7 +143,7 @@ If you prefer not to run Docker in the chroot, run the playbook as below. Packag
 ```bash
 sudo chroot /mnt /bin/bash -c '
   apt-get update && apt-get install -y ansible
-  cd /opt/maser_buoy/ansible
+  cd /opt/buoy/ansible
   ansible-playbook -i localhost, -c local playbook.yml
 '
 ```
@@ -154,7 +154,7 @@ If you use **Python 3 and venv** for Ansible on the host, you can still run Ansi
 
 ```bash
 sudo chroot /mnt /bin/bash -c '
-  cd /opt/maser_buoy/docker
+  cd /opt/buoy/docker
   docker save -o docker_images.tar $(docker compose images -q)
 '
 ```
@@ -162,14 +162,14 @@ sudo chroot /mnt /bin/bash -c '
 Then set `offline_first_boot` back to `true` in the baked repo:
 
 ```bash
-sudo sed -i 's/offline_first_boot: false/offline_first_boot: true/' /mnt/opt/maser_buoy/ansible/group_vars/all.yml
+sudo sed -i 's/offline_first_boot: false/offline_first_boot: true/' /mnt/opt/buoy/ansible/group_vars/all.yml
 ```
 
 ### 9. Install first-boot unit and clean up
 
 ```bash
-sudo cp /mnt/opt/maser_buoy/image/first_boot/maser-buoy-firstboot.service /mnt/etc/systemd/system/
-sudo chroot /mnt systemctl enable maser-buoy-firstboot.service
+sudo cp /mnt/opt/buoy/image/first_boot/buoy-firstboot.service /mnt/etc/systemd/system/
+sudo chroot /mnt systemctl enable buoy-firstboot.service
 ```
 
 ### 10. Unmount
@@ -183,7 +183,7 @@ sudo umount /mnt
 sudo losetup -d "$LOOP"
 ```
 
-Your built image is `maser_buoy_build.img`. Flash it with Raspberry Pi Imager (“Use custom”) or `dd`.
+Your built image is `buoy_build.img`. Flash it with Raspberry Pi Imager (“Use custom”) or `dd`.
 
 ---
 
@@ -206,12 +206,12 @@ Use a privileged container that can mount loop devices; the image file must be a
    - Binds the current directory (with the `.img` and repo) into the container.
    - Runs the same mount/chroot/playbook sequence as in the Linux section inside the container.
 
-3. **Run the script** so the container has access to your `maser_buoy` clone and the Raspberry Pi OS Lite image; after the script finishes, the modified `.img` is in your bind-mounted directory.
+3. **Run the script** so the container has access to your `buoy` clone and the Raspberry Pi OS Lite image; after the script finishes, the modified `.img` is in your bind-mounted directory.
 
 Example (high level; adjust paths and image name):
 
 ```bash
-# From the directory that contains your .img and maser_buoy repo
+# From the directory that contains your .img and buoy repo
 docker run --rm -it --privileged -v "$(pwd):/work" -w /work \
   debian:trixie bash -c '
     apt-get update && apt-get install -y qemu-user-static binfmt-support ansible
@@ -226,7 +226,7 @@ You’ll need to translate the Linux mount/chroot steps into commands run inside
 ### Option B: UTM or other VM with Linux (if Docker script fails on Mac)
 
 1. Install **UTM** (or Parallels, VMware, etc.) and create a **Linux** VM (e.g. Ubuntu).
-2. Copy the Raspberry Pi OS Lite `.img` and the Maser Buoy repo into the VM (shared folder or SCP).
+2. Copy the Raspberry Pi OS Lite `.img` and the Buoy repo into the VM (shared folder or SCP).
 3. Inside the VM, follow the **Linux** instructions above (mount image, qemu-user-static, chroot, playbook).
 4. Copy the modified `.img` back to the Mac and flash it with Raspberry Pi Imager for macOS.
 
@@ -234,7 +234,7 @@ You’ll need to translate the Linux mount/chroot steps into commands run inside
 
 ## Windows (WSL2)
 
-Use **WSL2** with a Linux distro (e.g. Ubuntu) and run the same steps as on **Linux**. The image file and repo should live inside the WSL filesystem (e.g. under `~/maser_buoy`) so that loop mounts and chroot work correctly.
+Use **WSL2** with a Linux distro (e.g. Ubuntu) and run the same steps as on **Linux**. The image file and repo should live inside the WSL filesystem (e.g. under `~/buoy`) so that loop mounts and chroot work correctly.
 
 ### 1. Install WSL2 and Ubuntu
 
@@ -257,21 +257,21 @@ sudo update-binfmts --enable
 ### 3. Put the image and repo in WSL
 
 - Copy the Raspberry Pi OS 64-bit Lite `.img` into your WSL home (e.g. `cp /mnt/c/Users/You/Downloads/raspios-lite.img ~/`).
-- Clone or copy the Maser Buoy repo into WSL (e.g. `~/maser_buoy`).
+- Clone or copy the Buoy repo into WSL (e.g. `~/buoy`).
 
-Avoid working from `/mnt/c/...` for the image when using loop mounts; use a path under your Linux filesystem (e.g. `~/maser_buoy_build/`).
+Avoid working from `/mnt/c/...` for the image when using loop mounts; use a path under your Linux filesystem (e.g. `~/buoy_build/`).
 
 ### 4. Run the same steps as Linux
 
-From step **2. Download and prepare the image** through **10. Unmount**, use the same commands. Use paths like `$HOME/maser_buoy_build.img` and `$HOME/maser_buoy`.
+From step **2. Download and prepare the image** through **10. Unmount**, use the same commands. Use paths like `$HOME/buoy_build.img` and `$HOME/buoy`.
 
 ### 5. Flash the image from Windows
 
-After unmounting, the built image is inside WSL (e.g. `~/maser_buoy_build.img`). Copy it to Windows if needed:
+After unmounting, the built image is inside WSL (e.g. `~/buoy_build.img`). Copy it to Windows if needed:
 
 ```powershell
 # From PowerShell
-copy \\wsl$\Ubuntu\home\YourUser\maser_buoy_build.img C:\Users\You\Downloads\
+copy \\wsl$\Ubuntu\home\YourUser\buoy_build.img C:\Users\You\Downloads\
 ```
 
 Then use **Raspberry Pi Imager for Windows** (“Use custom” and select that image), or use a tool that can write a raw image to the SD card.

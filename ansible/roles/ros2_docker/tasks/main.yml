@@ -1,30 +1,30 @@
 ---
-- name: Create Maser Buoy directory
+- name: Create Buoy directory
   ansible.builtin.file:
-    path: "{{ maser_buoy_root }}"
+    path: "{{ buoy_root }}"
     state: directory
     mode: "0755"
 
 - name: Copy Docker Compose and Dockerfile
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../docker/"
-    dest: "{{ maser_buoy_root }}/docker"
+    dest: "{{ buoy_root }}/docker"
     mode: "0644"
 
 - name: Make rosbridge launch script executable
   ansible.builtin.file:
-    path: "{{ maser_buoy_root }}/docker/rosbridge_launch.sh"
+    path: "{{ buoy_root }}/docker/rosbridge_launch.sh"
     mode: "0755"
 
 - name: Deploy ROS container systemd unit (starts soon after dockerd on boot)
   ansible.builtin.template:
-    src: maser-buoy-ros.service.j2
-    dest: /etc/systemd/system/maser-buoy-ros.service
+    src: buoy-ros.service.j2
+    dest: /etc/systemd/system/buoy-ros.service
     mode: "0644"
 
-- name: Enable maser-buoy-ros service
+- name: Enable buoy-ros service
   ansible.builtin.systemd:
-    name: maser-buoy-ros
+    name: buoy-ros
     enabled: true
     daemon_reload: true
 
@@ -54,14 +54,14 @@
 
 - name: Check for pre-saved Docker images tar (offline)
   ansible.builtin.stat:
-    path: "{{ maser_buoy_root }}/docker/docker_images.tar"
+    path: "{{ buoy_root }}/docker/docker_images.tar"
   register: docker_tar
   when: offline_first_boot | default(false) | bool
 
 - name: Load Docker images from tar (offline first boot)
   ansible.builtin.shell: docker load -i docker_images.tar
   args:
-    chdir: "{{ maser_buoy_root }}/docker"
+    chdir: "{{ buoy_root }}/docker"
   when:
     - offline_first_boot | default(false) | bool
     - docker_tar.stat.exists | default(false) | bool
@@ -70,7 +70,7 @@
 - name: Build ROS 2 image (during image build; docker_image_build=true, skip if pre-built)
   ansible.builtin.command:
     cmd: docker compose build
-    chdir: "{{ maser_buoy_root }}/docker"
+    chdir: "{{ buoy_root }}/docker"
   when:
     - docker_image_build | default(false) | bool
     - not docker_image_prebuilt | default(false) | bool
@@ -78,7 +78,7 @@
 - name: Start ROS 2 + rosbridge with Docker Compose (with build, requires network)
   ansible.builtin.command:
     cmd: docker compose up -d --build
-    chdir: "{{ maser_buoy_root }}/docker"
+    chdir: "{{ buoy_root }}/docker"
   environment:
     ROS_DOMAIN_ID: "{{ ros_domain_id }}"
   register: compose_up
@@ -91,7 +91,7 @@
 - name: Start ROS 2 + rosbridge with Docker Compose (offline, no build)
   ansible.builtin.command:
     cmd: docker compose up -d
-    chdir: "{{ maser_buoy_root }}/docker"
+    chdir: "{{ buoy_root }}/docker"
   environment:
     ROS_DOMAIN_ID: "{{ ros_domain_id }}"
   register: compose_up_offline

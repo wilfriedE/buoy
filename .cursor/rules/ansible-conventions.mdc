@@ -28,10 +28,10 @@ alwaysApply: false
 Services that depend on network interfaces must start after interface config:
 
 - **nodogsplash**: `After=wifi-ap-setup.service hostapd.service` (see captive_portal systemd override)
-- **maser-buoy-ros**: `After=docker.service`
+- **buoy-ros**: `After=docker.service`
 
 ## Variables (group_vars/all.yml)
 
 - `wifi_interface`: wlan0
-- `maser_buoy_hostname`, `buoy_domain`: for .buoy DNS
+- `buoy_hostname`, `buoy_domain`: for .buoy DNS
 - `captive_portal_enable`: false by default; set true for Nodogsplash splash page

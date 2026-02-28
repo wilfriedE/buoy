@@ -1,9 +1,9 @@
-# Maser Buoy – redirect to command center
+# Buoy – redirect to command center
 GatewayInterface {{ wifi_interface }}
 GatewayAddress 10.3.141.1
 # Landing page = command center
-GatewayURL http://{{ maser_buoy_hostname }}.{{ buoy_domain }}:{{ command_center_port }}/
-RedirectURL http://{{ maser_buoy_hostname }}.{{ buoy_domain }}:{{ command_center_port }}/
+GatewayURL http://{{ buoy_hostname }}.{{ buoy_domain }}:{{ command_center_port }}/
+RedirectURL http://{{ buoy_hostname }}.{{ buoy_domain }}:{{ command_center_port }}/
 # Allow command center and rosbridge so they load
 Whitelist 10.3.141.1
 Whitelist maser.buoy

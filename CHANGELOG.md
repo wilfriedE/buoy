@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Maser Buoy are documented in this file.
+All notable changes to Buoy are documented in this file.
 
 ## [Unreleased]
 
@@ -19,7 +19,7 @@ All notable changes to Maser Buoy are documented in this file.
 **Why:** The ROS (rosbridge) container was previously started by the Ansible playbook in `first_boot`, which waits for `network-online.target` and runs four roles first. That caused a long delay between dockerd starting and the ROS container being available.
 
 **What changed:**
-- New `maser-buoy-ros.service` systemd unit runs `docker compose up -d` as soon as dockerd is ready
+- New `buoy-ros.service` systemd unit runs `docker compose up -d` as soon as dockerd is ready
 - Service has `After=docker.service` and `ConditionPathExists` for the compose file (skips on first boot before playbook creates it)
 - On subsequent boots, the ROS container starts within seconds of dockerd, instead of waiting for the full playbook
 
