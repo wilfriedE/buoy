@@ -6,7 +6,7 @@
 
 **Your ROS 2 hub that keeps the network afloat.**
 
-Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local `.buoy` DNS, and a web command center. No desktop or display on the Pi—all UIs are web-based from devices on the WiFi. Devices connect to the hub’s WiFi and run ROS 2 nodes that discover each other via DDS with minimal configuration.
+Built for educational purposes. Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local `.buoy` DNS, and a web command center. No desktop or display on the Pi—all UIs are web-based from devices on the WiFi. Devices connect to the hub’s WiFi and run ROS 2 nodes that discover each other via DDS with minimal configuration.
 
 ## Features
 
