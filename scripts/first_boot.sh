@@ -1,7 +1,7 @@
 #!/bin/bash
 # Buoy first-boot: clone repo and run Ansible playbook
 set -e
-REPO_URL="${REPO_URL:-https://github.com/your-org/buoy.git}"
+REPO_URL="${REPO_URL:-https://github.com/wilfriedE/buoy.git}"
 BRANCH="${BRANCH:-main}"
 WORKDIR="/tmp/buoy_bootstrap"
 mkdir -p "$WORKDIR"

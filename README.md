@@ -29,7 +29,7 @@ Built for educational purposes. Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiF
 On a Raspberry Pi 5 with Raspberry Pi OS 64-bit (Trixie, Lite/server, headless):
 
 ```bash
-git clone https://github.com/your-org/buoy.git
+git clone https://github.com/wilfriedE/buoy.git
 cd buoy/ansible
 ansible-playbook -i localhost, -c local playbook.yml
 ```
@@ -37,7 +37,7 @@ ansible-playbook -i localhost, -c local playbook.yml
 Or use **ansible-pull** (e.g. from a first-boot script):
 
 ```bash
-ansible-pull -U https://github.com/your-org/buoy.git -C main -i localhost, -d /tmp/buoy ansible/playbook.yml
+ansible-pull -U https://github.com/wilfriedE/buoy.git -C main -i localhost, -d /tmp/buoy ansible/playbook.yml
 ```
 
 ## Variables

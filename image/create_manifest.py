@@ -8,7 +8,7 @@ gear (hostname, SSH) when flashing with Pi Imager.
 Usage:
   uv run create-manifest
   uv run create-manifest /path/to/buoy_build.img
-  uv run create-manifest --url "https://github.com/.../releases/download/v1.0/buoy_build.img.xz"
+  uv run create-manifest --url "https://github.com/wilfriedE/buoy/releases/download/v1.0/buoy_build.img.xz"
 """
 
 from __future__ import annotations

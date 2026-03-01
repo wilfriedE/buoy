@@ -8,7 +8,7 @@ Type=oneshot
 RemainAfterExit=yes
 # Option A: ansible-pull from repo (set REPO_URL when installing the unit)
 # Option A: ansible-pull style – script clones repo and runs playbook (set REPO_URL in a drop-in or edit below)
-# ExecStart=/bin/bash -c 'REPO_URL=https://github.com/your-org/buoy.git /opt/buoy/scripts/first_boot.sh'
+# ExecStart=/bin/bash -c 'REPO_URL=https://github.com/wilfriedE/buoy.git /opt/buoy/scripts/first_boot.sh'
 # Option B: baked playbook – no network required
 ExecStart=/bin/bash -c 'cd /opt/buoy/ansible && ansible-playbook -i localhost, -c local playbook.yml'
 
