@@ -44,6 +44,8 @@ ansible-pull -U https://github.com/wilfriedE/buoy.git -C main -i localhost, -d /
 
 Edit `ansible/group_vars/all.yml` to set hostname, WiFi SSID/passphrase, ROS domain ID, and ports. Key variables: `buoy_hostname`, `wifi_ssid`, `wifi_passphrase`, `ros_domain_id`, `ros_bridge_port`, `command_center_port`.
 
+**Before deploying:** Change `buoy_ssh_password` and `wifi_passphrase` in `ansible/group_vars/all.yml`. The defaults are placeholders only.
+
 **Offline first boot:** Default is `offline_first_boot: true` so the playbook does not require internet when it runs on first boot (e.g. in the field). Build the image once with network and `offline_first_boot: false` so Docker, hostapd, images, and pnpm deps are installed; then image the SD and set `offline_first_boot: true` again. See [image/README.md](image/README.md).
 
 ## License
