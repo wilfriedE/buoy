@@ -32,6 +32,12 @@ jobs:
       - name: Set up Python
         run: uv sync
 
+      - name: Set up QEMU for arm64 emulation
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
