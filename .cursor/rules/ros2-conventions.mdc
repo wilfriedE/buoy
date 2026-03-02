@@ -1,0 +1,16 @@
+---
+description: ROS 2 conventions for Buoy (not ROS 1)
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# ROS 2 (not ROS 1)
+
+This project uses **ROS 2 Jazzy**. Use:
+
+- `rclpy` (not `rospy`)
+- `std_msgs/msg/String` (not `std_msgs/String`)
+- `rclpy.Rate`, `rclpy.Node` (not rospy equivalents)
+- DDS / `ROS_DOMAIN_ID` for discovery
+
+Do not use ROS 1 patterns (rospy, roscore, catkin, rosrun, roslaunch XML).
