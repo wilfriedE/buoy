@@ -7,3 +7,6 @@ local=/{{ buoy_domain }}/
 address=/{{ buoy_hostname }}.{{ buoy_domain }}/10.3.141.1
 address=/maser.{{ buoy_domain }}/10.3.141.1
 address=/hub.{{ buoy_domain }}/10.3.141.1
+{% if llm_enable | default(false) | bool %}
+address=/llm.{{ buoy_domain }}/10.3.141.1
+{% endif %}

@@ -1,0 +1,28 @@
+---
+description: Offline-first Docker – bake images for first boot without internet
+globs: "docker/**/*,image/**/*,ansible/**/*"
+alwaysApply: false
+---
+
+# Offline-first Docker
+
+The Buoy image must work on **first boot without internet**. All Docker images used at runtime must be **baked into the image** during build.
+
+## When adding a new Docker service or image
+
+1. **Add to `docker save`** in `image/build-with-docker.sh`:
+   - Basic build: `docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest`
+   - LLM build: add your image to the list (e.g. `docker-whisper:latest`, `docker-llm_node:latest`)
+
+2. **Pre-pull any runtime data** (e.g. Ollama models) during build – store in `build/ollama/` and copy to `/opt/buoy/ollama/` in `docker-build-inner.sh`
+
+3. **Ensure the image is built** before the save step (e.g. `docker compose --profile llm build` for LLM services)
+
+4. **Do not** rely on `docker pull` or `docker compose` network access at first boot – only `docker load` from the baked tar
+
+## Checklist for new services
+
+- [ ] Image added to `docker save` in build-with-docker.sh
+- [ ] Image built before save (compose build or docker pull)
+- [ ] Any large runtime data (models, etc.) pre-downloaded and copied into image
+- [ ] LLM variant: expand image size in docker-build-inner.sh if adding large artifacts

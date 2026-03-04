@@ -47,3 +47,10 @@
     name: docker
     state: started
     enabled: true
+
+- name: Add SSH user to docker group (run docker without sudo)
+  ansible.builtin.user:
+    name: "{{ buoy_ssh_user }}"
+    groups: docker
+    append: true
+  when: buoy_ssh_user is defined and buoy_ssh_user | length > 0

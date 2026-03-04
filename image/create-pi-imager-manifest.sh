@@ -17,7 +17,8 @@ BUILD_DIR="$REPO_ROOT/build"
 OUTPUT_MANIFEST="$BUILD_DIR/buoy.rpi-imager-manifest"
 FILE_URL=""
 
-# Parse --url
+# Parse --url and optional image path
+IMG_PATH=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --url)
@@ -25,16 +26,18 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     *)
+      IMG_PATH="$1"
+      shift
       break
       ;;
   esac
 done
 
 if [ -z "$FILE_URL" ]; then
-  if [ -n "$1" ]; then
-    IMG_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-  else
+  if [ -z "$IMG_PATH" ]; then
     IMG_PATH="$BUILD_DIR/buoy_build.img"
+  else
+    IMG_PATH="$(cd "$(dirname "$IMG_PATH")" && pwd)/$(basename "$IMG_PATH")"
   fi
   if [ ! -f "$IMG_PATH" ]; then
     echo "ERROR: Image not found: $IMG_PATH"
@@ -44,6 +47,11 @@ if [ -z "$FILE_URL" ]; then
     exit 1
   fi
   FILE_URL="file://${IMG_PATH}"
+fi
+
+# Use buoy_llm.rpi-imager-manifest when URL/path refers to LLM image
+if [[ "$FILE_URL" == *"buoy_build_llm"* ]] || [[ "$IMG_PATH" == *"buoy_build_llm"* ]]; then
+  OUTPUT_MANIFEST="$BUILD_DIR/buoy_llm.rpi-imager-manifest"
 fi
 
 mkdir -p "$(dirname "$OUTPUT_MANIFEST")"

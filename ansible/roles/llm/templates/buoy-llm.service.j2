@@ -1,0 +1,16 @@
+[Unit]
+Description=Buoy LLM containers (Ollama, Whisper, LLM node)
+After=buoy-ros.service docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory={{ buoy_root }}/docker
+Environment=ROS_DOMAIN_ID={{ ros_domain_id }}
+ExecStart=/usr/bin/docker compose --profile llm up -d
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

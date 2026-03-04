@@ -19,6 +19,14 @@ alwaysApply: false
 - Output: `build/docker_images.tar` → copied into image at `/opt/buoy/docker/`
 - Playbook runs with `docker_image_build=true` and `docker_image_prebuilt=true` to skip build/start tasks
 
+## Offline-first (no internet on first boot)
+
+- **All** Docker images used at runtime must be in `docker_images.tar` – built/pulled during image build, saved via `docker save`
+- Basic: `docker-ros2_rosbridge:latest`
+- LLM variant: `docker-ros2_rosbridge:latest`, `ollama/ollama:latest`, `docker-whisper:latest`, `docker-llm_node:latest`
+- Ollama models (e.g. llava:7b) are pre-pulled to `build/ollama/` and copied to `/opt/buoy/ollama/` – not in the tar
+- First boot loads images from tar via Ansible (`docker load -i docker_images.tar`) – no network required
+
 ## docker-build-inner.sh
 
 - Runs inside privileged Debian container

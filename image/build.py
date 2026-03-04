@@ -12,6 +12,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -35,6 +36,16 @@ def main() -> None:
         action="store_true",
         help="Use Raspberry Pi OS Legacy (Bookworm) instead of Trixie",
     )
+    parser.add_argument(
+        "--with-llm",
+        action="store_true",
+        help="Build image with Ollama, Whisper, and LLM ROS node",
+    )
+    parser.add_argument(
+        "--both",
+        action="store_true",
+        help="Build both basic and LLM images (runs build twice)",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
@@ -51,19 +62,45 @@ def main() -> None:
     else:
         print(f"[*] Using existing base image: {base}")
 
-    # 2. Build the Buoy image
-    print("[*] Building Buoy image...")
-    build_script = image_dir / "build-with-docker.sh"
-    subprocess.run(["bash", str(build_script)], cwd=repo_root, check=True)
+    builds = []
+    if args.both:
+        builds = [(False, "basic"), (True, "LLM")]
+    else:
+        builds = [(args.with_llm, "LLM" if args.with_llm else "basic")]
 
-    # 3. Create Pi Imager manifest
+    for with_llm, label in builds:
+        print(f"[*] Building Buoy image ({label})...")
+        build_script = image_dir / "build-with-docker.sh"
+        env = os.environ.copy()
+        if with_llm:
+            env["BUOY_LLM"] = "1"
+        subprocess.run(["bash", str(build_script)], cwd=repo_root, check=True, env=env)
+
+    # 3. Create Pi Imager manifest(s)
     print("[*] Creating Pi Imager manifest...")
     manifest_script = image_dir / "create-pi-imager-manifest.sh"
-    subprocess.run(["bash", str(manifest_script)], cwd=repo_root, check=True)
+    build_dir = repo_root / "build"
+    if args.both:
+        subprocess.run(
+            ["bash", str(manifest_script), str(build_dir / "buoy_build.img")],
+            cwd=repo_root,
+            check=True,
+        )
+        subprocess.run(
+            ["bash", str(manifest_script), str(build_dir / "buoy_build_llm.img")],
+            cwd=repo_root,
+            check=True,
+        )
+    else:
+        subprocess.run(["bash", str(manifest_script)], cwd=repo_root, check=True)
 
     print("")
     print("Done. Flash with Raspberry Pi Imager:")
-    print("  build/buoy.rpi-imager-manifest")
+    if args.both:
+        print("  build/buoy.rpi-imager-manifest (basic)")
+        print("  build/buoy_llm.rpi-imager-manifest (LLM)")
+    else:
+        print("  build/buoy.rpi-imager-manifest")
     print("")
 
 

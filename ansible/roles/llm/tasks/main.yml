@@ -1,0 +1,27 @@
+---
+- name: Deploy buoy-llm systemd unit (starts LLM containers after ROS on boot)
+  ansible.builtin.template:
+    src: buoy-llm.service.j2
+    dest: /etc/systemd/system/buoy-llm.service
+    mode: "0644"
+  when: llm_enable | default(false) | bool
+
+- name: Enable buoy-llm service
+  ansible.builtin.systemd:
+    name: buoy-llm
+    enabled: true
+    daemon_reload: true
+  when: llm_enable | default(false) | bool
+
+- name: Start LLM containers (Ollama, Whisper, LLM node)
+  ansible.builtin.command:
+    cmd: docker compose --profile llm up -d
+    chdir: "{{ buoy_root }}/docker"
+  environment:
+    ROS_DOMAIN_ID: "{{ ros_domain_id }}"
+  register: llm_compose_up
+  changed_when: "'Creating' in llm_compose_up.stdout or 'Starting' in llm_compose_up.stdout"
+  failed_when: llm_compose_up.rc != 0
+  when:
+    - llm_enable | default(false) | bool
+    - not docker_image_build | default(false) | bool

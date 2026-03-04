@@ -1,8 +1,10 @@
 /**
  * Buoy command center – serves dashboard and proxies device list API.
  * Connects to rosbridge at localhost:9090 for the frontend.
+ * Proxies /api/llm to Ollama when LLM variant is deployed.
  */
 const express = require('express');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
@@ -17,6 +19,55 @@ const GENERATE_HOSTAPD_SCRIPT = path.join(BUOY_ROOT, 'config', 'generate-hostapd
 // DHCP leases path (dnsmasq)
 const LEASES_PATH = process.env.DHCP_LEASES_PATH || '/var/lib/misc/dnsmasq.leases';
 
+// Proxy /api/llm to Ollama – must be before body parsers so we can stream
+const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
+
+// LLM status check (before proxy so we can short-circuit)
+app.get('/api/llm/status', (req, res) => {
+  try {
+    const u = new URL('/api/tags', OLLAMA_URL);
+    const opts = { hostname: u.hostname, port: u.port || (u.protocol === 'https:' ? 443 : 80), path: u.pathname, method: 'GET' };
+    let sent = false;
+    const send = (available) => {
+      if (!sent) { sent = true; res.json({ available }); }
+    };
+    const statusReq = http.request(opts, (statusRes) => { send(statusRes.statusCode === 200); });
+    statusReq.on('error', () => send(false));
+    statusReq.setTimeout(3000, () => { statusReq.destroy(); send(false); });
+    statusReq.end();
+  } catch (err) {
+    console.error('LLM status error:', err.message);
+    res.json({ available: false });
+  }
+});
+
+app.use('/api/llm', express.raw({ type: () => true }), (req, res) => {
+  const reqPath = req.path === '/' ? '' : req.path;
+  const target = new URL(reqPath + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''), OLLAMA_URL);
+  const opts = {
+    hostname: target.hostname,
+    port: target.port || 80,
+    path: target.pathname + target.search,
+    method: req.method,
+    headers: { ...req.headers, host: target.host },
+  };
+  delete opts.headers['host'];
+  opts.headers['Host'] = target.host;
+  const proxyReq = http.request(opts, (proxyRes) => {
+    res.status(proxyRes.statusCode);
+    Object.keys(proxyRes.headers).forEach((k) => res.setHeader(k, proxyRes.headers[k]));
+    proxyRes.pipe(res);
+  });
+  proxyReq.on('error', (err) => {
+    console.error('LLM proxy error:', err.message);
+    res.status(503).json({ error: 'LLM service not available' });
+  });
+  if (req.body && Buffer.isBuffer(req.body)) {
+    proxyReq.write(req.body);
+  }
+  proxyReq.end();
+});
+
 // JSON body parsing for POST
 app.use(express.json());
 
@@ -24,15 +75,16 @@ const DOCS_DIR = path.join(__dirname, 'public', 'docs');
 
 // Markdown docs rendered as HTML (must be before static)
 app.get('/docs/:name.md', (req, res) => {
-  const name = req.params.name.replace(/[^a-zA-Z0-9_-]/g, '');
-  const filePath = path.join(DOCS_DIR, name + '.md');
-  const resolved = path.resolve(filePath);
-  const docsResolved = path.resolve(DOCS_DIR);
-  const isUnderDocs = resolved === docsResolved || resolved.startsWith(docsResolved + path.sep);
-  if (isUnderDocs && fs.existsSync(filePath)) {
-    const md = fs.readFileSync(filePath, 'utf8');
-    const html = marked.parse(md, { async: false });
-    const title = (html.match(/<h1[^>]*>([^<]+)<\/h1>/) || [null, name])[1] || name;
+  try {
+    const name = req.params.name.replace(/[^a-zA-Z0-9_-]/g, '');
+    const filePath = path.join(DOCS_DIR, name + '.md');
+    const resolved = path.resolve(filePath);
+    const docsResolved = path.resolve(DOCS_DIR);
+    const isUnderDocs = resolved === docsResolved || resolved.startsWith(docsResolved + path.sep);
+    if (isUnderDocs && fs.existsSync(filePath)) {
+      const md = fs.readFileSync(filePath, 'utf8');
+      const html = marked.parse(md, { async: false });
+      const title = (html.match(/<h1[^>]*>([^<]+)<\/h1>/) || [null, name])[1] || name;
     res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,18 +131,32 @@ app.get('/docs/:name.md', (req, res) => {
   </main>
 </body>
 </html>`);
-  } else {
-    res.status(404).send('Not found');
+    } else {
+      res.status(404).send('Not found');
+    }
+  } catch (err) {
+    console.error('Docs error:', err.message);
+    res.status(500).send('Error loading document');
   }
 });
 
 function escapeHtml(s) {
+  if (s == null) return '';
   return String(s)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+// Catch unhandled errors to log before exit (systemd will restart)
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason, p) => {
+  console.error('Unhandled rejection at', p, 'reason:', reason);
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -165,6 +231,12 @@ app.get('/api/devices', (req, res) => {
 // Dashboard
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Express error handler (catches errors from async route handlers)
+app.use((err, req, res, next) => {
+  console.error('Route error:', err.message);
+  res.status(500).send('Internal server error');
 });
 
 app.listen(PORT, '0.0.0.0', () => {

@@ -15,6 +15,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IMAGE_DIR="$SCRIPT_DIR"
 BUILD_DIR="$REPO_ROOT/build"
 OUTPUT_IMG="$BUILD_DIR/buoy_build.img"
+[ -n "${BUOY_LLM}" ] && OUTPUT_IMG="$BUILD_DIR/buoy_build_llm.img"
 
 # --- Check Docker ---
 if ! command -v docker &>/dev/null; then
@@ -61,25 +62,41 @@ fi
 mkdir -p "$BUILD_DIR"
 
 # --- Create writable copy so we don't modify the original ---
-echo "[*] Creating writable copy: buoy_build.img"
+echo "[*] Creating writable copy: $(basename "$OUTPUT_IMG")"
 cp -f "$INPUT_IMG" "$OUTPUT_IMG"
 
 # --- Build ROS image on host (chroot cannot run dockerd; socket bind-mount is unreliable) ---
 echo "[*] Building ROS image for arm64 (on host Docker)..."
-docker run --rm \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v "$REPO_ROOT:/repo:ro" \
-  -v "$BUILD_DIR:/work:rw" \
-  docker:latest \
-  sh -c 'cd /repo/docker && docker compose build && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest'
+if [ -n "${BUOY_LLM}" ]; then
+  echo "[*] LLM variant: building Ollama, Whisper, LLM node..."
+  mkdir -p "$BUILD_DIR/ollama"
+  docker run --rm \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$REPO_ROOT:/repo:ro" \
+    -v "$BUILD_DIR:/work:rw" \
+    -e BUOY_LLM=1 \
+    -e "WORK_HOST=$BUILD_DIR" \
+    docker:latest \
+    sh -c 'cd /repo/docker && docker compose build && docker compose --profile llm build && docker pull ollama/ollama:latest && docker run --rm -v "${WORK_HOST}/ollama:/root/.ollama" --entrypoint sh ollama/ollama:latest -c "ollama serve & count=0; until ollama list 2>/dev/null || [ \$count -ge 120 ]; do sleep 1; count=\$((count+1)); done; [ \$count -ge 120 ] && { echo \"Timeout waiting for Ollama\"; exit 1; }; ollama pull llava:7b" && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest ollama/ollama:latest docker-whisper:latest docker-llm_node:latest'
+else
+  docker run --rm \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$REPO_ROOT:/repo:ro" \
+    -v "$BUILD_DIR:/work:rw" \
+    docker:latest \
+    sh -c 'cd /repo/docker && docker compose build && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest'
+fi
 
 # --- Run privileged container ---
+# IMG must be the path inside the container (/work), not the host path
+IMG_IN_CONTAINER="/work/$(basename "$OUTPUT_IMG")"
 echo "[*] Running image build in Docker (this may take a long time)..."
 docker run --rm --privileged --cgroupns=host \
   -v "$REPO_ROOT:/repo:ro" \
   -v "$BUILD_DIR:/work:rw" \
   -v "$SCRIPT_DIR/docker-build-inner.sh:/run-inner.sh:ro" \
-  -e "IMG=/work/buoy_build.img" \
+  -e "IMG=$IMG_IN_CONTAINER" \
+  -e "BUOY_LLM=$BUOY_LLM" \
   debian:trixie \
   bash /run-inner.sh
 

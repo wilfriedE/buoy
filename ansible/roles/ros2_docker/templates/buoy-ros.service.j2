@@ -1,7 +1,8 @@
 [Unit]
 Description=Buoy ROS 2 + rosbridge container
-After=docker.service
+After=buoy-firstboot.service docker.service
 Requires=docker.service
+# Wait for first-boot to load images and start containers; on subsequent boots first-boot is disabled so we start immediately
 # Only run when compose files exist (created by playbook on first boot)
 ConditionPathExists={{ buoy_root }}/docker/compose.yml
 

@@ -21,6 +21,7 @@ Built for [MASER](https://www.maserdc.org/) and educational purposes. Headless R
 - **[Command center – local dev](command_center/README.md)** – Run the dashboard locally with live reload for UI work (asdf + pnpm)
 - **[Changelog](CHANGELOG.md)** – Notable changes and migration notes
 - **[User guide: connecting and interacting with ROS devices](docs/ros-hub.md)** – For users of the hub: connect to WiFi, run ROS 2 nodes, use rosbridge (Python, JavaScript, TypeScript examples)
+- **[LLM variant (Ollama, Whisper, ROS node)](docs/llm-buoy.md)** – Optional build with `--with-llm`: multimodal LLM over HTTP and ROS topics
 - **[Image build: flash and first boot](image/README.md)** – Build the image (with network once); first boot on the Pi runs offline. Use the **headless** (Lite/server) base OS. **GitHub Actions:** Run **Actions → Build Image and Release** to build and publish a release with the image and Pi Imager manifest.
 - **[Build image with QEMU](image/BUILD-QEMU.md)** – Build the image on a PC (Linux, macOS, or Windows via WSL2) using QEMU emulation—no Raspberry Pi required. **Easiest:** `uv run build` (requires [UV](https://docs.astral.sh/uv/) and Docker; see [image/README.md](image/README.md) for install).
 

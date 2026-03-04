@@ -91,7 +91,15 @@ Or double-click the manifest file to open it in Imager. The manifest uses `init_
 
 ## Deploy (no internet)
 
-Flash the built image to each Pi 5, insert the SD, and power on **without network**. The first-boot service runs the playbook with `offline_first_boot: true`, which configures hostapd and dnsmasq for WiFi, starts ROS Docker Compose, command center, and other services. Hostapd and dnsmasq run natively on the host and provide the Buoy AP with .buoy DNS. The first_boot role then disables the service so it does not run again on the next boot.
+Flash the built image to each Pi 5, insert the SD, and power on **without network**. The first-boot service runs the playbook with `offline_first_boot: true`, which configures hostapd and dnsmasq for WiFi, loads Docker images (~3.5 GB for basic, ~8 GB for LLM), starts ROS Docker Compose, command center, and other services.
+
+**First boot can take 10–20 minutes** on SD card due to `docker load` (reading and decompressing the baked tar). The system may feel sluggish during this; `docker ps` and other commands will be slow until the load completes. ROS and LLM containers start after the load finishes. The SSH user (see `buoy_ssh_user` in `ansible/group_vars/all.yml`) is added to the `docker` group during first boot—log out and back in (or reboot) to run `docker` without `sudo`.
+
+**To monitor first boot progress** (e.g. over Ethernet SSH):
+```bash
+tail -f /var/log/cloud-init-output.log
+```
+When the playbook finishes, you see `PLAY RECAP` and the containers start. Hostapd and dnsmasq run natively on the host and provide the Buoy AP with .buoy DNS. The first_boot role then disables the service so it does not run again on the next boot.
 
 ## First-boot unit
 

@@ -45,6 +45,16 @@
         <div id="devices" class="space-y-2 min-h-[80px] text-slate-300">Loading…</div>
       </div>
 
+      <!-- LLM status -->
+      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">LLM (Ollama)</h2>
+        <div id="llm-status" class="flex items-center gap-2 text-slate-300">
+          <span id="llm-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500/50"></span>
+          <span id="llm-text">Checking…</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">Ollama + Whisper + ROS Action at <code class="bg-slate-800 px-1 rounded">/llm/chat</code>. <a href="/docs/llm-buoy.md" class="text-sky-400 hover:underline">Docs</a></p>
+      </div>
+
       <!-- Quick actions -->
       <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
         <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">ROS 2</h2>
@@ -127,6 +137,24 @@
         })
         .finally(() => { btn.disabled = false; });
     });
+
+    fetch('/api/llm/status')
+      .then(r => r.json())
+      .then(({ available }) => {
+        const dot = document.getElementById('llm-dot');
+        const text = document.getElementById('llm-text');
+        if (available) {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+          text.textContent = 'Available';
+        } else {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+          text.textContent = 'Not available';
+        }
+      })
+      .catch(() => {
+        document.getElementById('llm-dot').className = 'w-2.5 h-2.5 rounded-full bg-red-500/70';
+        document.getElementById('llm-text').textContent = 'Check failed';
+      });
 
     fetch('/api/devices')
       .then(r => r.json())

@@ -1,0 +1,19 @@
+# Buoy Whisper ASR – faster-whisper with REST API (ARM64)
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir faster-whisper fastapi uvicorn python-multipart
+
+WORKDIR /app
+# Pre-download Whisper model during build (offline-first: Pi has no internet)
+RUN python -c "from faster_whisper import WhisperModel; from pathlib import Path; Path('/app/whisper_models').mkdir(exist_ok=True); WhisperModel('tiny', device='cpu', compute_type='int8', download_root='/app/whisper_models')"
+
+COPY whisper_server.py /app/
+COPY whisper_entrypoint.sh /app/
+RUN chmod +x /app/whisper_entrypoint.sh
+
+EXPOSE 9000
+ENTRYPOINT ["/app/whisper_entrypoint.sh"]

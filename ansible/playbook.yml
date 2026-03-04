@@ -12,6 +12,7 @@
     - local_dns
     - wifi_ap
     - ros2_docker
+    - llm
     - command_center
     - captive_portal
     - first_boot
