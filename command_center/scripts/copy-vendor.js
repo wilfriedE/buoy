@@ -17,6 +17,10 @@ const VENDORS = [
     name: 'vis-network.min.js',
     url: 'https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js',
   },
+  {
+    name: 'mermaid.min.js',
+    url: 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js',
+  },
 ];
 
 function fetch(url) {

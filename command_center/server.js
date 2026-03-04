@@ -83,7 +83,9 @@ app.get('/docs/:name.md', (req, res) => {
     const isUnderDocs = resolved === docsResolved || resolved.startsWith(docsResolved + path.sep);
     if (isUnderDocs && fs.existsSync(filePath)) {
       const md = fs.readFileSync(filePath, 'utf8');
-      const html = marked.parse(md, { async: false });
+      let html = marked.parse(md, { async: false });
+      // Convert mermaid code blocks to div.mermaid for client-side rendering
+      html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/gi, '<div class="mermaid">$1</div>');
       const title = (html.match(/<h1[^>]*>([^<]+)<\/h1>/) || [null, name])[1] || name;
     res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -108,6 +110,7 @@ app.get('/docs/:name.md', (req, res) => {
     .doc-content hr { border: none; border-top: 1px solid #334155; margin: 2rem 0; }
     .doc-content a { color: #38bdf8; }
     .doc-content strong { color: #f8fafc; }
+    .doc-content .mermaid { margin: 1.5rem 0; display: flex; justify-content: center; }
   </style>
 </head>
 <body class="min-h-screen text-slate-200">
@@ -129,6 +132,8 @@ app.get('/docs/:name.md', (req, res) => {
   <main class="max-w-3xl mx-auto px-4 py-8">
     <div class="doc-content content">${html}</div>
   </main>
+  <script src="/vendor/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true,theme:'dark',themeVariables:{primaryColor:'#0ea5e9',primaryTextColor:'#e2e8f0',primaryBorderColor:'#334155',lineColor:'#64748b',secondaryColor:'#1e293b',tertiaryColor:'#0f172a'}});</script>
 </body>
 </html>`);
     } else {
