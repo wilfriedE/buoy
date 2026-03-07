@@ -24,7 +24,7 @@ alwaysApply: false
 - **All** Docker images used at runtime must be in `docker_images.tar` – built/pulled during image build, saved via `docker save`
 - Basic: `docker-ros2_rosbridge:latest`
 - LLM variant: `docker-ros2_rosbridge:latest`, `ollama/ollama:latest`, `docker-whisper:latest`, `docker-llm_node:latest`
-- Ollama models (e.g. llava:7b) are pre-pulled to `build/ollama/` and copied to `/opt/buoy/ollama/` – not in the tar
+- Ollama models (qwen2.5:1.5b, moondream) are pre-pulled to `build/ollama/` and copied to `/opt/buoy/ollama/` – not in the tar
 - First boot loads images from tar via Ansible (`docker load -i docker_images.tar`) – no network required
 
 ## docker-build-inner.sh

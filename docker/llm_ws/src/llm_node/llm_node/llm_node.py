@@ -52,7 +52,8 @@ class LLMNode(Node):
         # ROS 2 parameters (env vars override defaults for Docker)
         self.declare_parameter("ollama_host", os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434"))
         self.declare_parameter("whisper_url", os.environ.get("WHISPER_URL", "http://127.0.0.1:9000/asr"))
-        self.declare_parameter("model", os.environ.get("LLM_MODEL", "llava:7b"))
+        self.declare_parameter("model", os.environ.get("LLM_MODEL", "qwen2.5:1.5b"))
+        self.declare_parameter("vision_model", os.environ.get("LLM_VISION_MODEL", "moondream"))
         self.declare_parameter("default_timeout_sec", float(os.environ.get("LLM_TIMEOUT_SEC", "30")))
 
         self._action_server = ActionServer(
@@ -121,9 +122,12 @@ class LLMNode(Node):
 
             goal_handle.publish_feedback(Chat.Feedback(status="generating", progress=0.1))
 
-            # Call Ollama
+            # Call Ollama – use vision model for image, text model for text/audio
             ollama_host = self.get_parameter("ollama_host").value
-            model = self.get_parameter("model").value
+            if modality == "image" and payload_b64:
+                model = self.get_parameter("vision_model").value
+            else:
+                model = self.get_parameter("model").value
             images = [payload_b64] if modality == "image" and payload_b64 else None
             messages = [{"role": "user", "content": text_prompt}]
             payload = {"model": model, "messages": messages, "stream": False}

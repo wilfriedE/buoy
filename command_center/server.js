@@ -53,6 +53,11 @@ app.use('/api/llm', express.raw({ type: () => true }), (req, res) => {
   };
   delete opts.headers['host'];
   opts.headers['Host'] = target.host;
+  // Ollama returns 403 when Origin header is present (CORS); strip browser headers for server-to-server proxy
+  delete opts.headers['origin'];
+  delete opts.headers['Origin'];
+  delete opts.headers['referer'];
+  delete opts.headers['Referer'];
   const proxyReq = http.request(opts, (proxyRes) => {
     res.status(proxyRes.statusCode);
     Object.keys(proxyRes.headers).forEach((k) => res.setHeader(k, proxyRes.headers[k]));

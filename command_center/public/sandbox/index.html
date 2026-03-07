@@ -34,7 +34,13 @@
       <!-- Chat with AI -->
       <a href="/sandbox/chat-ai.html" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-sky-500/50 transition">
         <h2 class="text-lg font-semibold text-white mb-2">Chat with AI</h2>
-        <p class="text-sm text-slate-400">Chat with the LLM via ROS 2 Action. Demonstrates using the /llm/chat action from the browser.</p>
+        <p class="text-sm text-slate-400">Chat with the LLM (Qwen) via ROS 2 Action <code class="bg-slate-700 px-1 rounded text-xs">/llm/chat</code> with <code class="bg-slate-700 px-1 rounded text-xs">modality: "text"</code>. Falls back to HTTP.</p>
+      </a>
+
+      <!-- AI Image View -->
+      <a href="/sandbox/image-view-ai.html" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-sky-500/50 transition">
+        <h2 class="text-lg font-semibold text-white mb-2">AI Image View</h2>
+        <p class="text-sm text-slate-400">Upload an image and ask the vision model (Moondream) to describe it. Uses <code class="bg-slate-700 px-1 rounded text-xs">modality: "image"</code>.</p>
       </a>
 
       <!-- Live Coding (placeholder) -->

@@ -1,0 +1,25 @@
+---
+description: Work-in-progress workflow for feature branches (not main or release)
+alwaysApply: true
+---
+
+# Branch Workflow
+
+When working on a branch **other than `main` or a release branch** (e.g. `release/*`, `v*`):
+
+## Work in Progress
+
+- Treat all changes as **work in progress** until the branch is finished and merged.
+- No need to maintain backwards compatibility with new work added in the branch.
+- No need to capture changelog entries for work done in the working branch.
+
+## When This Applies
+
+- User indicates they are on a feature/development branch
+- Changes are unmerged and not yet deployed
+- Branch will be merged to main at a later date
+
+## Exceptions
+
+- On `main` or release branches: maintain backwards compatibility and update CHANGELOG for user-facing changes.
+- When the user explicitly asks for changelog or migration notes.

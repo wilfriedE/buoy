@@ -7,7 +7,7 @@ Requires=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory={{ buoy_root }}/docker
-Environment=ROS_DOMAIN_ID={{ ros_domain_id }}
+Environment=ROS_DOMAIN_ID={{ ros_domain_id }} LLM_MODEL={{ llm_model }} LLM_VISION_MODEL={{ llm_vision_model | default('moondream') }}
 ExecStart=/usr/bin/docker compose --profile llm up -d
 StandardOutput=journal
 StandardError=journal

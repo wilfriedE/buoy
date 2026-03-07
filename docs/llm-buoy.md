@@ -1,6 +1,6 @@
 # Buoy LLM – Ollama, Whisper, and ROS integration
 
-This guide covers the **LLM variant** of Buoy, which adds Ollama (LLaVA), Whisper (speech-to-text), and a ROS 2 Action server for multimodal LLM requests. The LLM variant requires an 8GB+ Raspberry Pi 5 and is built with `uv run build --with-llm`.
+This guide covers the **LLM variant** of Buoy, which adds Ollama, Whisper (speech-to-text), and a ROS 2 Action server for multimodal LLM requests. The LLM variant requires an 8GB+ Raspberry Pi 5 and is built with `uv run build --with-llm`. Two models are used automatically: **Qwen2.5:1.5b** for text/audio (reasoning) and **Moondream** for vision (image understanding).
 
 ---
 
@@ -37,17 +37,61 @@ flowchart TB
 
 ---
 
+## API Reference for Clients
+
+### Summary
+
+| Interface | Model selection | Client action |
+|-----------|-----------------|---------------|
+| **ROS 2 Action** `/llm/chat` | Automatic | Set `modality` (`text`, `image`, or `audio`). Node routes to the correct model. |
+| **HTTP API** `/api/llm/api/chat` | Client-specified | Include `model` in request body. Use `qwen2.5:1.5b` for text/audio, `moondream` for vision. |
+
+### ROS 2 Action – no model parameter
+
+ROS clients **do not** specify a model. The node selects it from `modality`:
+
+- `modality: "text"` or `"audio"` → Qwen2.5:1.5b (reasoning)
+- `modality: "image"` → Moondream (vision)
+
+Goal fields: `prompt`, `modality`, `payload_base64`, `timeout_sec`, `requester_id`.
+
+### HTTP API – model required in request body
+
+HTTP clients **must** include `model` in the JSON body. Use the model that matches your request type:
+
+| Request type | Model | Example |
+|--------------|-------|---------|
+| Text chat | `qwen2.5:1.5b` | `{"model": "qwen2.5:1.5b", "messages": [{"role": "user", "content": "Hello"}]}` |
+| Vision (with image) | `moondream` | `{"model": "moondream", "messages": [...], "images": ["<base64>"]}` |
+
+Using the wrong model (e.g. `moondream` for text-only) may work but gives suboptimal results. Using `qwen2.5:1.5b` for image requests will fail (Qwen is text-only).
+
+---
+
 ## HTTP API
 
 **Direct access:** `http://llm.buoy:11434` (or `http://10.3.141.1:11434`)
 
 **Via command center proxy:** `http://buoy.buoy/api/llm/...` – forwards to Ollama. If Ollama is unreachable, returns 503 with `{"error": "LLM service not available"}`.
 
-Ollama exposes an OpenAI-compatible API. Examples:
-
-- Chat: `POST /api/chat` with `{"model": "llava:7b", "messages": [...]}`
+Ollama exposes an OpenAI-compatible API. **Choose the model based on modality:**
+- **Text/audio:** `{"model": "qwen2.5:1.5b", "messages": [...]}`
+- **Vision (images):** `{"model": "moondream", "messages": [...], "images": ["<base64>"]}`
 - Generate: `POST /api/generate`
-- Vision: include base64 images in chat messages
+
+**Example (text):**
+```bash
+curl -X POST http://buoy.buoy/api/llm/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"model": "qwen2.5:1.5b", "messages": [{"role": "user", "content": "What is 2+2?"}], "stream": false}'
+```
+
+**Example (vision):**
+```bash
+curl -X POST http://buoy.buoy/api/llm/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"model": "moondream", "messages": [{"role": "user", "content": "Describe this image"}], "images": ["<base64-encoded-image>"], "stream": false}'
+```
 
 ---
 
@@ -90,22 +134,23 @@ Each `requester_id` may have at most one active goal. New goals from the same re
 
 ### Parameters (configurable)
 
-| Parameter            | Default                    | Description        |
-|----------------------|----------------------------|--------------------|
-| `ollama_host`        | `http://127.0.0.1:11434`    | Ollama API URL     |
-| `whisper_url`        | `http://127.0.0.1:9000/asr` | Whisper ASR URL    |
-| `model`              | `llava:7b`                  | Ollama model name  |
-| `default_timeout_sec`| `30`                        | Default timeout    |
+| Parameter            | Default                    | Description                          |
+|----------------------|----------------------------|--------------------------------------|
+| `ollama_host`        | `http://127.0.0.1:11434`    | Ollama API URL                       |
+| `whisper_url`        | `http://127.0.0.1:9000/asr` | Whisper ASR URL                      |
+| `model`              | `qwen2.5:1.5b`             | Text/audio model (reasoning)        |
+| `vision_model`       | `moondream`                | Image model (vision)                 |
+| `default_timeout_sec`| `30`                        | Default timeout                      |
 
-Override via env vars (`OLLAMA_HOST`, `WHISPER_URL`, `LLM_MODEL`, `LLM_TIMEOUT_SEC`) or `ros2 param set`.
+The node selects the model automatically: `vision_model` for `modality: "image"`, `model` for text and audio. Override via env vars (`OLLAMA_HOST`, `WHISPER_URL`, `LLM_MODEL`, `LLM_VISION_MODEL`, `LLM_TIMEOUT_SEC`) or `ros2 param set`.
 
 ---
 
 ## Modalities
 
-- **Text:** Send `modality: "text"`, omit `payload_base64`. Prompt goes directly to Ollama.
-- **Image:** Send `modality: "image"`, `payload_base64` with base64-encoded image. Uses LLaVA for vision.
-- **Audio:** Send `modality: "audio"`, `payload_base64` with base64-encoded audio. Whisper transcribes first, then the text is sent to Ollama.
+- **Text:** Send `modality: "text"`, omit `payload_base64`. Uses Qwen2.5:1.5b for reasoning.
+- **Image:** Send `modality: "image"`, `payload_base64` with base64-encoded image. Uses Moondream for vision.
+- **Audio:** Send `modality: "audio"`, `payload_base64` with base64-encoded audio. Whisper transcribes first, then the text is sent to Qwen.
 
 ---
 
@@ -230,7 +275,8 @@ If you get `{"error":"LLM service not available"}` when accessing the LLM API:
    - If disk is full or SD card is worn, re-flash the image to a new SD card
    - As a last resort (with network): `cd /opt/buoy/docker && sudo docker compose --profile llm pull && sudo docker compose --profile llm up -d` to re-pull images
 
-8. **Pi sluggish / SSH timeout / WiFi slow** – Ollama (LLaVA 7B) uses 4–6 GB RAM. The compose file limits memory with `OLLAMA_MAX_LOADED_MODELS=1`, `OLLAMA_NUM_PARALLEL=1`, `OLLAMA_KEEP_ALIVE=5m`. If still slow:
+8. **Pi sluggish / SSH timeout / WiFi slow** – Qwen2.5:1.5b uses ~1 GB RAM; Moondream ~1.7 GB. Both stay loaded (`OLLAMA_MAX_LOADED_MODELS=2`) to avoid 30–60s switch delay when alternating text/image. The compose file uses `OLLAMA_NUM_PARALLEL=1`, `OLLAMA_KEEP_ALIVE=5m`. If still slow:
    - Stop LLM when not needed: `cd /opt/buoy/docker && sudo docker compose --profile llm stop`
    - Reduce keep-alive (unload model sooner): edit `docker/compose.yml`, set `OLLAMA_KEEP_ALIVE: "0"` (unload immediately after each request; first request after idle will be slower)
+   - If OOM or heavy swap: set `OLLAMA_MAX_LOADED_MODELS: "1"` to load only one model at a time (adds switch delay when alternating modalities)
    - Check memory: `free -h`; if swap is heavily used, consider SSD instead of SD card

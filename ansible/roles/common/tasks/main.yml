@@ -54,5 +54,6 @@
       - curl
       - git
       - python3-pip
+      - vim
     state: present
   when: not offline_first_boot | default(false) | bool

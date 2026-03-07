@@ -19,6 +19,8 @@
     chdir: "{{ buoy_root }}/docker"
   environment:
     ROS_DOMAIN_ID: "{{ ros_domain_id }}"
+    LLM_MODEL: "{{ llm_model }}"
+    LLM_VISION_MODEL: "{{ llm_vision_model | default('moondream') }}"
   register: llm_compose_up
   changed_when: "'Creating' in llm_compose_up.stdout or 'Starting' in llm_compose_up.stdout"
   failed_when: llm_compose_up.rc != 0

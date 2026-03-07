@@ -59,7 +59,6 @@ mkdir -p "$(dirname "$OUTPUT_MANIFEST")"
 # init_format: cloudinit-rpi matches Raspberry Pi OS Trixie (our base)
 # This enables hostname, SSH customization. Do NOT configure WiFi in the gear—
 # Buoy uses wlan0 as AP; Pi Imager's WiFi would make it a client and conflict.
-# Our image is based on RPi OS, so these options may apply.
 cat > "$OUTPUT_MANIFEST" << EOF
 {
   "os_list": [
