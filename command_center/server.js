@@ -126,6 +126,7 @@ app.get('/docs/:name.md', (req, res) => {
         <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
         <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
         <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-400">Sandbox</a>
       </div>
     </div>
   </nav>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with AI – Buoy Sandbox</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+  <script src="/vendor/roslib.min.js"></script>
+</head>
+<body class="min-h-screen text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Chat with AI</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
+        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
+        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-400">Sandbox</a>
+        <a href="/docs/ros-hub.md" class="nav-link text-sm text-slate-400">Docs</a>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Checking…</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <p class="text-slate-400 mb-6">Chat with the LLM via ROS 2 Action <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">/llm/chat</code>. Falls back to HTTP when ROS is unavailable.</p>
+
+    <div id="llm-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+      LLM not available. Check that Ollama is running and the proxy is configured.
+    </div>
+
+    <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+      <div id="messages" class="max-h-80 overflow-y-auto p-4 space-y-4 font-mono text-sm">Send a message to start.</div>
+      <div class="border-t border-slate-700/50 p-4 flex gap-2">
+        <input id="input" type="text" placeholder="Type a message…" maxlength="2000"
+          class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
+        <button id="send" disabled class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+          Send
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const wsUrl = 'ws://' + window.location.hostname + ':9090';
+      const statusEl = document.getElementById('status');
+      const messagesEl = document.getElementById('messages');
+      const inputEl = document.getElementById('input');
+      const sendBtn = document.getElementById('send');
+      const llmUnavailableEl = document.getElementById('llm-unavailable');
+      const chatHistory = [];
+
+      function setStatus(cls, text) {
+        statusEl.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
+        statusEl.textContent = text;
+      }
+
+      function addMessage(role, content, isError) {
+        if (messagesEl.textContent === 'Send a message to start.') {
+          messagesEl.textContent = '';
+        }
+        const div = document.createElement('div');
+        div.className = 'flex ' + (role === 'user' ? 'justify-end' : 'justify-start');
+        const bubble = document.createElement('div');
+        bubble.className = 'max-w-[85%] px-3 py-2 rounded-lg ' +
+          (role === 'user' ? 'bg-sky-600/50 text-white' : (isError ? 'bg-red-500/20 text-red-200' : 'bg-slate-700/50 text-slate-200'));
+        bubble.textContent = content;
+        div.appendChild(bubble);
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function sendViaHttp(prompt, onResult) {
+        fetch('/api/llm/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llava:7b',
+            messages: chatHistory,
+            stream: false
+          })
+        })
+          .then(r => {
+            if (!r.ok) throw new Error(r.status === 503 ? 'LLM service not available' : 'Request failed');
+            return r.json();
+          })
+          .then(data => {
+            const content = (data.message && data.message.content) || data.response || '';
+            if (content) chatHistory.push({ role: 'assistant', content });
+            onResult(content, true);
+          })
+          .catch(err => {
+            onResult(err.message || 'HTTP request failed', false);
+          });
+      }
+
+      function sendViaRos(prompt, onResult) {
+        const goalId = 'goal_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        let resolved = false;
+        let timeoutId;
+
+        function finish(content, success) {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(timeoutId);
+          if (success && content) chatHistory.push({ role: 'assistant', content });
+          onResult(content || '', success);
+          try { ws.close(); } catch (e) {}
+        }
+
+        const ws = new WebSocket(wsUrl);
+        ws.onopen = function() {
+          const handler = function(ev) {
+            try {
+              const msg = JSON.parse(ev.data);
+              if (msg.op === 'action_result' && msg.id === goalId) {
+                ws.removeEventListener('message', handler);
+                const v = msg.values || {};
+                const ok = msg.result === true || v.success === true;
+                const content = ok ? (v.content || '') : (v.error_message || 'Action failed');
+                finish(content, ok);
+              }
+            } catch (e) {}
+          };
+          ws.addEventListener('message', handler);
+          ws.send(JSON.stringify({
+            op: 'send_action_goal',
+            id: goalId,
+            action: '/llm/chat',
+            action_type: 'llm_msgs/action/Chat',
+            args: [{
+              prompt: prompt,
+              modality: 'text',
+              payload_base64: '',
+              timeout_sec: 30,
+              requester_id: 'sandbox-web'
+            }],
+            feedback: false
+          }));
+          timeoutId = setTimeout(function() {
+            if (!resolved) finish('ROS action timeout', false);
+          }, 60000);
+        };
+        ws.onerror = function() { finish('ROS connection failed', false); };
+        ws.onclose = function() { if (!resolved) finish('ROS connection closed', false); };
+      }
+
+      function sendMessage() {
+        const text = inputEl.value.trim();
+        if (!text) return;
+        inputEl.value = '';
+        sendBtn.disabled = true;
+        chatHistory.push({ role: 'user', content: text });
+        addMessage('user', text);
+
+        function onResult(content, success) {
+          addMessage('assistant', content || '(no response)', !success);
+          sendBtn.disabled = false;
+          inputEl.focus();
+        }
+
+        sendViaRos(text, function(content, success) {
+          if (!success) sendViaHttp(text, onResult);
+          else onResult(content, success);
+        });
+      }
+
+      fetch('/api/llm/status')
+        .then(r => r.json())
+        .then(({ available }) => {
+          if (available) {
+            llmUnavailableEl.classList.add('hidden');
+            sendBtn.disabled = false;
+            setStatus('bg-emerald-500/20 text-emerald-400', 'LLM available');
+          } else {
+            llmUnavailableEl.classList.remove('hidden');
+            sendBtn.disabled = true;
+            setStatus('bg-slate-500/20 text-slate-400', 'LLM not available');
+          }
+        })
+        .catch(() => {
+          llmUnavailableEl.classList.remove('hidden');
+          sendBtn.disabled = true;
+          setStatus('bg-red-500/20 text-red-400', 'Status check failed');
+        });
+
+      sendBtn.addEventListener('click', sendMessage);
+      inputEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') sendMessage();
+      });
+    })();
+  </script>
+</body>
+</html>
