@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gamepad & Joysticks – Buoy</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+  <script src="/vendor/roslib.min.js"></script>
+</head>
+<body class="min-h-screen text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Gamepad & Joysticks</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
+        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
+        <a href="/gamepad.html" class="nav-link text-sm text-sky-400">Gamepad & Joysticks</a>
+        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-400">Sandbox</a>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Connecting…</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <p class="text-slate-400 mb-6">Register your gamepad or joystick as a ROS node that publishes <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">geometry_msgs/msg/Twist</code> to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">/cmd_vel/&lt;name&gt;</code>. When you close this tab or disconnect, the topic stops. Other nodes (e.g. <a href="/sandbox/turtle-draw.html" class="text-sky-400 hover:underline">Turtle Draw</a>) can subscribe to your topic.</p>
+    <p class="text-sm text-slate-500 mb-6">Connect your gamepad via USB or Bluetooth, then <strong>press any button</strong> so the browser can detect it.</p>
+
+    <div id="ros-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+      ROS (rosbridge) not connected. Connect to the buoy WiFi and ensure rosbridge is running.
+    </div>
+
+    <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6 space-y-4">
+      <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider">Register controller</h2>
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">Controller name (used for topic <code class="text-xs">/cmd_vel/&lt;name&gt;</code>)</label>
+        <input id="controller-name" type="text" placeholder="e.g. gamepad, joystick, joystick_1" maxlength="64"
+          class="w-full max-w-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 font-mono">
+        <p id="name-hint" class="mt-1 text-xs text-slate-500">Lowercase letters, numbers, underscores. Must start with a letter.</p>
+        <p id="name-error" class="mt-1 text-xs text-red-400 hidden"></p>
+      </div>
+      <div class="flex gap-2">
+        <button id="start-btn" disabled class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+          Start publishing
+        </button>
+        <button id="stop-btn" disabled class="px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-500 text-slate-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+          Stop
+        </button>
+      </div>
+      <div id="active-state" class="hidden pt-4 border-t border-slate-700/50">
+        <p class="text-sm text-emerald-400 font-medium">Publishing to <code id="topic-display" class="bg-slate-900 px-1.5 py-0.5 rounded"></code></p>
+        <p class="text-xs text-slate-500 mt-1">Left stick: linear.x (Y) and angular.z (X). Hold the controller and move the stick. Close this tab to stop.</p>
+        <div id="stick-preview" class="mt-3 w-48 h-24 rounded-lg bg-slate-900/50 border border-slate-700 flex items-center justify-center">
+          <span class="text-slate-500 text-xs">Move stick to see output</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const wsUrl = 'ws://' + window.location.hostname + ':9090';
+      const ros = new ROSLIB.Ros({ url: wsUrl });
+      const statusEl = document.getElementById('status');
+      const rosUnavailableEl = document.getElementById('ros-unavailable');
+      const nameInput = document.getElementById('controller-name');
+      const nameErrorEl = document.getElementById('name-error');
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const activeStateEl = document.getElementById('active-state');
+      const topicDisplayEl = document.getElementById('topic-display');
+      const stickPreviewEl = document.getElementById('stick-preview');
+
+      // ROS topic name: lowercase, start with letter, alphanumeric + underscore
+      const NAME_RE = /^[a-z][a-z0-9_]*$/;
+      const MAX_LEN = 64;
+
+      let publisher = null;
+      let animationId = null;
+
+      function setStatus(cls, text) {
+        statusEl.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
+        statusEl.textContent = text;
+      }
+
+      function validateName(name) {
+        name = (name || '').trim();
+        if (!name) return { ok: false, msg: 'Name is required' };
+        if (name.length > MAX_LEN) return { ok: false, msg: 'Name too long' };
+        if (!NAME_RE.test(name)) return { ok: false, msg: 'Use lowercase letters, numbers, underscores. Must start with a letter.' };
+        return { ok: true, name: name };
+      }
+
+      function topicForName(name) {
+        return '/cmd_vel/' + name;
+      }
+
+      function makeTwist(linearX, angularZ) {
+        return new ROSLIB.Message({
+          linear: { x: linearX, y: 0, z: 0 },
+          angular: { x: 0, y: 0, z: angularZ }
+        });
+      }
+
+      function pollGamepad() {
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+        const pad = pads[0];
+        if (!pad || !publisher) return;
+
+        // Left stick: axis 0 = X (turn), axis 1 = Y (forward). Invert Y so up = forward.
+        const axisX = pad.axes[0] || 0;
+        const axisY = -(pad.axes[1] || 0);
+        const deadzone = 0.15;
+        const scale = 1.0;
+        let lx = Math.abs(axisY) > deadzone ? axisY * scale : 0;
+        let az = Math.abs(axisX) > deadzone ? axisX * scale : 0;
+
+        publisher.publish(makeTwist(lx, az));
+
+        stickPreviewEl.innerHTML = '<span class="text-slate-400 text-xs font-mono">linear.x=' + lx.toFixed(2) + ' angular.z=' + az.toFixed(2) + '</span>';
+        animationId = requestAnimationFrame(pollGamepad);
+      }
+
+      function stopPublishing() {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+        if (publisher) {
+          publisher.unadvertise();
+          publisher = null;
+        }
+        activeStateEl.classList.add('hidden');
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        nameInput.disabled = false;
+      }
+
+      function startPublishing() {
+        const v = validateName(nameInput.value);
+        nameErrorEl.classList.add('hidden');
+        if (!v.ok) {
+          nameErrorEl.textContent = v.msg;
+          nameErrorEl.classList.remove('hidden');
+          return;
+        }
+
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+        const pad = pads[0];
+        if (!pad) {
+          nameErrorEl.textContent = 'No gamepad detected. Connect via USB/Bluetooth and press any button.';
+          nameErrorEl.classList.remove('hidden');
+          return;
+        }
+
+        const topic = topicForName(v.name);
+        publisher = new ROSLIB.Topic({
+          ros: ros,
+          name: topic,
+          messageType: 'geometry_msgs/msg/Twist'
+        });
+        publisher.advertise();
+
+        topicDisplayEl.textContent = topic;
+        activeStateEl.classList.remove('hidden');
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        nameInput.disabled = true;
+
+        pollGamepad();
+      }
+
+      ros.on('connection', function() {
+        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+        rosUnavailableEl.classList.add('hidden');
+        startBtn.disabled = false;
+      });
+
+      ros.on('error', function() {
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        rosUnavailableEl.classList.remove('hidden');
+        startBtn.disabled = true;
+        stopPublishing();
+      });
+
+      ros.on('close', function() {
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        rosUnavailableEl.classList.remove('hidden');
+        startBtn.disabled = true;
+        stopPublishing();
+      });
+
+      window.addEventListener('beforeunload', function() {
+        stopPublishing();
+      });
+
+      startBtn.addEventListener('click', startPublishing);
+      stopBtn.addEventListener('click', stopPublishing);
+
+      // Prompt to connect gamepad if none found
+      window.addEventListener('gamepadconnected', function() {
+        if (stickPreviewEl.querySelector('.text-slate-500')) {
+          stickPreviewEl.innerHTML = '<span class="text-emerald-400 text-xs">Gamepad connected</span>';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
