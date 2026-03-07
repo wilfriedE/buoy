@@ -112,6 +112,7 @@ app.get('/docs/:name.md', (req, res) => {
     .doc-content code { background: #1e293b; padding: 0.15rem 0.4rem; border-radius: 6px; font-size: 0.9em; }
     .doc-content pre { background: #1e293b; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #334155; }
     .doc-content pre code { background: none; padding: 0; }
+    .doc-content .hljs { background: #1e293b; padding: 0; }
     .doc-content hr { border: none; border-top: 1px solid #334155; margin: 2rem 0; }
     .doc-content a { color: #38bdf8; }
     .doc-content strong { color: #f8fafc; }
@@ -138,8 +139,15 @@ app.get('/docs/:name.md', (req, res) => {
   <main class="max-w-3xl mx-auto px-4 py-8">
     <div class="doc-content content">${html}</div>
   </main>
+  <link rel="stylesheet" href="/vendor/highlight-theme.min.css" />
+  <script src="/vendor/highlight.min.js"></script>
   <script src="/vendor/mermaid.min.js"></script>
-  <script>mermaid.initialize({startOnLoad:true,theme:'dark',themeVariables:{primaryColor:'#0ea5e9',primaryTextColor:'#e2e8f0',primaryBorderColor:'#334155',lineColor:'#64748b',secondaryColor:'#1e293b',tertiaryColor:'#0f172a'}});</script>
+  <script>
+    document.querySelectorAll('.doc-content pre code').forEach(function(el) {
+      hljs.highlightElement(el);
+    });
+    mermaid.initialize({startOnLoad:true,theme:'dark',themeVariables:{primaryColor:'#0ea5e9',primaryTextColor:'#e2e8f0',primaryBorderColor:'#334155',lineColor:'#64748b',secondaryColor:'#1e293b',tertiaryColor:'#0f172a'}});
+  </script>
 </body>
 </html>`);
     } else {

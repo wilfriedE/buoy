@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Coding – Buoy Sandbox</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+  <link rel="stylesheet" href="/vendor/codemirror.css" />
+  <link rel="stylesheet" href="/vendor/codemirror-theme.css" />
+  <style>
+    .CodeMirror-wrap .CodeMirror { min-height: 16rem; border-radius: 0; }
+    .CodeMirror-wrap .CodeMirror-gutters { background: #0f172a; border-color: #334155; }
+  </style>
+  <script src="/vendor/roslib.min.js"></script>
+  <script src="/vendor/codemirror.min.js"></script>
+  <script src="/vendor/codemirror-javascript.js"></script>
+</head>
+<body class="min-h-screen text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Live Coding</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
+        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
+        <a href="/gamepad.html" class="nav-link text-sm text-slate-400">Gamepad & Joysticks</a>
+        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-400">Sandbox</a>
+        <a href="/docs/ros-hub.md" class="nav-link text-sm text-slate-400">Docs</a>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Connecting…</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <p class="text-slate-400 mb-6">Write and run ROS 2 JavaScript in the browser. You have access to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ros</code> (ROSLIB connection) and <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ROSLIB</code>. Use <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">log(...)</code> to print to the console. <kbd class="px-1.5 py-0.5 rounded bg-slate-700 text-xs">Ctrl+Enter</kbd> to run.</p>
+
+    <div id="ros-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+      ROS (rosbridge) not connected. Connect to the buoy WiFi.
+    </div>
+
+    <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-slate-700/50">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium text-slate-400">Editor</span>
+          <select id="example-select" class="text-sm px-2 py-1 rounded bg-slate-900 border border-slate-600 text-slate-300">
+            <option value="">— Load example —</option>
+            <option value="publish">Publish to /chatter</option>
+            <option value="subscribe">Subscribe to /chatter</option>
+            <option value="twist">Publish Twist to /cmd_vel/test</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button id="run-btn" disabled class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+            Run
+          </button>
+          <button id="clear-console-btn" class="px-3 py-2 rounded-lg bg-slate-600 hover:bg-slate-500 text-slate-200 text-sm">
+            Clear console
+          </button>
+        </div>
+      </div>
+      <div class="CodeMirror-wrap">
+        <textarea id="editor">// Example: publish a message
+const pub = new ROSLIB.Topic({ ros, name: '/chatter', messageType: 'std_msgs/msg/String' });
+pub.publish(new ROSLIB.Message({ data: 'Hello from Live Coding!' }));
+log('Published');</textarea>
+      </div>
+      <div class="border-t border-slate-700/50">
+        <div class="px-4 py-2 text-sm font-medium text-slate-400">Console</div>
+        <div id="console" class="max-h-48 overflow-y-auto p-4 font-mono text-sm bg-slate-950/50 text-slate-300 min-h-[6rem]">Run your code to see output here.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const wsUrl = 'ws://' + window.location.hostname + ':9090';
+      const ros = new ROSLIB.Ros({ url: wsUrl });
+      const statusEl = document.getElementById('status');
+      const rosUnavailableEl = document.getElementById('ros-unavailable');
+      const consoleEl = document.getElementById('console');
+      const runBtn = document.getElementById('run-btn');
+      const clearConsoleBtn = document.getElementById('clear-console-btn');
+      const exampleSelect = document.getElementById('example-select');
+
+      const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+        mode: 'javascript',
+        theme: 'base16-dark',
+        lineNumbers: true,
+        indentUnit: 2,
+        tabSize: 2,
+        indentWithTabs: false,
+        lineWrapping: true,
+        extraKeys: { 'Ctrl-Enter': run, 'Cmd-Enter': run }
+      });
+
+      function run() {
+        const code = editor.getValue().trim();
+        if (!code) return;
+        consoleEl.innerHTML = '';
+        try {
+          const fn = new Function('ros', 'ROSLIB', 'log', code);
+          fn(ros, ROSLIB, log);
+        } catch (err) {
+          log('Error:', err.message);
+          console.error(err);
+        }
+      }
+
+      const EXAMPLES = {
+        publish: `// Publish a string to /chatter
+const pub = new ROSLIB.Topic({ ros, name: '/chatter', messageType: 'std_msgs/msg/String' });
+pub.publish(new ROSLIB.Message({ data: 'Hello from Live Coding!' }));
+log('Published to /chatter');`,
+        subscribe: `// Subscribe to /chatter and log incoming messages
+const listener = new ROSLIB.Topic({ ros, name: '/chatter', messageType: 'std_msgs/msg/String' });
+listener.subscribe((msg) => log('Received:', msg.data));
+log('Subscribed to /chatter. Send messages from Listen & Publish to see them here.');`,
+        twist: `// Publish a Twist message (e.g. for Turtle Draw)
+const pub = new ROSLIB.Topic({ ros, name: '/cmd_vel/test', messageType: 'geometry_msgs/msg/Twist' });
+pub.publish(new ROSLIB.Message({
+  linear: { x: 0.5, y: 0, z: 0 },
+  angular: { x: 0, y: 0, z: 0.2 }
+}));
+log('Published Twist to /cmd_vel/test');`
+      };
+
+      function setStatus(cls, text) {
+        statusEl.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
+        statusEl.textContent = text;
+      }
+
+      function log(...args) {
+        const line = document.createElement('div');
+        line.className = 'py-1 border-b border-slate-800/50 last:border-0';
+        line.textContent = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      }
+
+      exampleSelect.addEventListener('change', function() {
+        const key = exampleSelect.value;
+        if (key && EXAMPLES[key]) {
+          editor.setValue(EXAMPLES[key]);
+        }
+        exampleSelect.value = '';
+      });
+      runBtn.addEventListener('click', run);
+      clearConsoleBtn.addEventListener('click', function() {
+        consoleEl.innerHTML = 'Run your code to see output here.';
+      });
+
+      ros.on('connection', function() {
+        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+        rosUnavailableEl.classList.add('hidden');
+        runBtn.disabled = false;
+      });
+
+      ros.on('error', function() {
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        rosUnavailableEl.classList.remove('hidden');
+        runBtn.disabled = true;
+      });
+
+      ros.on('close', function() {
+        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        rosUnavailableEl.classList.remove('hidden');
+        runBtn.disabled = true;
+      });
+    })();
+  </script>
+</body>
+</html>
