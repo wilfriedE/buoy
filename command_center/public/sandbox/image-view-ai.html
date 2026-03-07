@@ -125,8 +125,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'moondream',
-            messages: [{ role: 'user', content: prompt }],
-            images: [base64],
+            messages: [{ role: 'user', content: prompt, images: [base64] }],
             stream: false
           })
         })

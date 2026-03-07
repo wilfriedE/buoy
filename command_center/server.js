@@ -41,7 +41,7 @@ app.get('/api/llm/status', (req, res) => {
   }
 });
 
-app.use('/api/llm', express.raw({ type: () => true }), (req, res) => {
+app.use('/api/llm', express.raw({ type: () => true, limit: '50mb' }), (req, res) => {
   const reqPath = req.path === '/' ? '' : req.path;
   const target = new URL(reqPath + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''), OLLAMA_URL);
   const opts = {

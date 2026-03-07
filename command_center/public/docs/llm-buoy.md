@@ -66,6 +66,19 @@ HTTP clients **must** include `model` in the JSON body. Use the model that match
 
 Using the wrong model (e.g. `moondream` for text-only) may work but gives suboptimal results. Using `qwen2.5:1.5b` for image requests will fail (Qwen is text-only).
 
+### Message roles (HTTP API)
+
+Each message in the `messages` array has a `role` and `content`. Supported roles:
+
+| Role | Description |
+|------|--------------|
+| `system` | System prompt or instructions that set the model's behavior (e.g. "You are a helpful assistant."). Optional; typically first message. |
+| `user` | User input (text, or text + images for vision models). |
+| `assistant` | Prior model responses. Include these for multi-turn chat so the model has context. |
+| `tool` | Tool/function call results when using function calling. |
+
+For simple single-turn requests, use `[{"role": "user", "content": "..."}]`. For multi-turn chat, alternate `user` and `assistant` messages. For vision, add `images` to the user message: `{"role": "user", "content": "Describe this", "images": ["<base64>"]}`.
+
 ---
 
 ## HTTP API
