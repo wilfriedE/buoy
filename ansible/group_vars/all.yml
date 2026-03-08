@@ -9,13 +9,17 @@ buoy_domain: buoy
 # SSH user for headless login (created by playbook)
 buoy_ssh_user: maser
 buoy_ssh_password: ChangeMe
-# WiFi (native hostapd)
+# WiFi AP: set false for headless-only install (no hostapd). Default true for Pi image.
+wifi_ap_enable: true
+# WiFi (native hostapd) – only when wifi_ap_enable
 wifi_ssid: Buoy
 wifi_passphrase: ChangeMe
 wifi_country: US
 wifi_interface: wlan0
 # Upstream interface for WiFi AP NAT (WiFi clients → LAN/internet)
 raspap_upstream_interface: eth0
+# Docker platform for compose (auto-detected: arm64 on aarch64, amd64 otherwise)
+docker_platform: "{{ 'linux/arm64' if ansible_architecture == 'aarch64' else 'linux/amd64' }}"
 # ROS 2
 ros_domain_id: "0"
 ros_bridge_port: 9090

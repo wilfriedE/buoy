@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.rosbridge
-    platform: linux/arm64
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
     network_mode: host
     environment:
       ROS_DOMAIN_ID: "${ROS_DOMAIN_ID:-0}"
@@ -14,7 +14,7 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    platform: linux/arm64
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
     network_mode: host
     volumes:
       - /opt/buoy/ollama:/root/.ollama
@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.whisper
-    platform: linux/arm64
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
     network_mode: host
     restart: unless-stopped
     profiles:
@@ -41,7 +41,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.llm_node
-    platform: linux/arm64
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
     network_mode: host
     environment:
       ROS_DOMAIN_ID: "${ROS_DOMAIN_ID:-0}"

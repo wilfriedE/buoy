@@ -87,9 +87,14 @@ jobs:
           [ -f buoy_build_llm.img ] && xz -z -9 -T0 buoy_build_llm.img
           ls -lh *.xz *.rpi-imager-manifest 2>/dev/null || true
 
+      - name: Prepare install script for release
+        run: |
+          sed "s/BUOY_VERSION:-main/BUOY_VERSION:-${{ github.event.inputs.version }}/" scripts/install.sh > build/install.sh
+          chmod +x build/install.sh
+
       - name: Create Release
         run: |
-          FILES="build/buoy_build.img.xz build/buoy.rpi-imager-manifest"
+          FILES="build/buoy_build.img.xz build/buoy.rpi-imager-manifest build/install.sh"
           [ -f build/buoy_build_llm.img.xz ] && FILES="$FILES build/buoy_build_llm.img.xz"
           [ -f build/buoy_llm.rpi-imager-manifest ] && FILES="$FILES build/buoy_llm.rpi-imager-manifest"
           gh release create "${{ github.event.inputs.version }}" \

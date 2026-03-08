@@ -9,10 +9,13 @@
   roles:
     - common
     - docker
-    - local_dns
-    - wifi_ap
+    - role: local_dns
+      when: wifi_ap_enable | default(true) | bool
+    - role: wifi_ap
+      when: wifi_ap_enable | default(true) | bool
     - ros2_docker
     - llm
     - command_center
-    - captive_portal
+    - role: captive_portal
+      when: wifi_ap_enable | default(true) | bool and captive_portal_enable | default(false) | bool
     - first_boot

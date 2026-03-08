@@ -48,6 +48,35 @@ With the manifest loaded, the settings gear lets you set hostname, SSH user, and
 
 ---
 
+## Install on Linux (Debian, Ubuntu, Fedora)
+
+Install Buoy on an existing Linux machine without flashing an image. Supported: Debian, Ubuntu, Fedora, RHEL, Rocky, Alma.
+
+Download the install script from a [release](https://github.com/wilfriedE/buoy/releases) (replace `v1.0.0` with your desired version):
+
+```bash
+curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh | sudo bash
+```
+
+**Options:**
+- `--no-wifi` – Headless only (no hostapd). Default. Access the command center at `http://localhost` or `http://<host-ip>`.
+- `--wifi` – Enable WiFi AP if you have a WiFi interface (e.g. `wlan0`). Connect to the Buoy network and open `http://buoy.buoy`.
+
+**With WiFi AP:**
+```bash
+curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh | sudo bash -s -- --wifi
+```
+
+**From a local clone:**
+```bash
+cd buoy
+sudo ./install.sh --no-wifi   # or --wifi
+```
+
+See [docs/install-linux.md](docs/install-linux.md) for details.
+
+---
+
 ## Features
 
 - **WiFi AP** – Native hostapd + dnsmasq so devices connect to one SSID and get DHCP/DNS from the Pi
