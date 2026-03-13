@@ -59,8 +59,8 @@ curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh 
 ```
 
 **Options:**
-- `--no-wifi` – Headless only (no hostapd). Default. Access the web portal at `http://localhost` or `http://<host-ip>`.
-- `--wifi` – Enable WiFi AP if you have a WiFi interface (e.g. `wlan0`). Connect to the Buoy network and open `http://buoy.buoy` or `http://10.3.141.1`.
+- `--no-wifi` – **Default.** No WiFi AP—your machine stays on your existing network. Other devices on the same WiFi or LAN reach the hub at your machine's IP. No "Buoy WiFi" to join.
+- `--wifi` – Enable WiFi AP so the Buoy creates its own network (e.g. for field use). Connect to the Buoy network and open `http://buoy.buoy` or `http://10.3.141.1`.
 
 **With WiFi AP:**
 ```bash
@@ -72,6 +72,8 @@ curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh 
 cd buoy
 sudo ./install.sh --no-wifi   # or --wifi
 ```
+
+**Finding the Buoy's IP (headless):** On the Buoy machine, run `hostname -I | awk '{print $1}'`. Use that IP from other devices on the same network.
 
 See [docs/install-linux.md](docs/install-linux.md) for details.
 

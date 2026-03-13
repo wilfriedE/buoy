@@ -103,7 +103,11 @@ ansible-playbook -i localhost, -c local playbook.yml \
 touch /etc/buoy_configured 2>/dev/null || true
 
 echo ""
-echo "Buoy installed. Web portal: http://localhost (or http://$(hostname))"
+echo "Buoy installed."
 if [ "$WIFI_AP_ENABLE" = true ]; then
-  echo "WiFi AP: Connect to the Buoy network and open http://buoy.buoy"
+  echo "WiFi AP: Connect to the Buoy network and open http://buoy.buoy or http://10.3.141.1"
+else
+  BUOY_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+  echo "Web portal: http://localhost (on this machine) or http://${BUOY_IP:-<host-ip>} (from other devices on the same network)"
+  echo "No Buoy WiFi—devices use your existing network. Rosbridge: ws://${BUOY_IP:-<host-ip>}:9090"
 fi
