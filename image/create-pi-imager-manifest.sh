@@ -64,7 +64,7 @@ cat > "$OUTPUT_MANIFEST" << EOF
   "os_list": [
     {
       "name": "Buoy",
-      "description": "Headless ROS 2 hub with WiFi AP, .buoy DNS, web portal",
+      "description": "ROS 2 hub appliance – WiFi AP, .buoy DNS, web portal",
       "url": "$FILE_URL",
       "init_format": "cloudinit-rpi",
       "devices": ["pi5-64bit", "pi4-64bit", "pi3-64bit"],

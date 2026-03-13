@@ -1,7 +1,7 @@
 [project]
 name = "buoy"
 version = "0.1.0"
-description = "Headless ROS 2 Jazzy hub for Raspberry Pi 5"
+description = "ROS 2 hub appliance – network infrastructure for robotics. Deploy as a Pi image or install on Linux."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

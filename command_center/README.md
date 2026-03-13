@@ -1,6 +1,6 @@
 # Buoy Web portal
 
-Web dashboard for the Buoy ROS 2 hub.
+Web dashboard for the Buoy ROS 2 hub appliance.
 
 ## Local development
 

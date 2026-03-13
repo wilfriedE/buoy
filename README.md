@@ -6,7 +6,7 @@
 
 **Your ROS 2 hub that keeps the network afloat.**
 
-Built for [MASER](https://www.maserdc.org/) and educational purposes. Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local `.buoy` DNS, and a web portal. No desktop or display on the Pi—all UIs are web-based from devices on the WiFi.
+Buoy is a **ROS 2 hub appliance**—network infrastructure for robotics. Deploy it as a flashable Raspberry Pi image or install it on Linux (Debian, Ubuntu, Fedora). Like a router for ROS: the hub becomes the central node on a local network. Devices connect via WiFi (or LAN), get DHCP and DNS, and join the same ROS 2 domain. A web portal provides the dashboard, topic graph, and tools; all UIs run in the browser from connected devices. Built for educational use.
 
 ---
 
@@ -84,6 +84,7 @@ See [docs/install-linux.md](docs/install-linux.md) for details.
 - **ROS 2 Jazzy** – Runs in Docker with **host networking** so the hub and WiFi clients share the same DDS multicast domain
 - **Web portal** – Dashboard (ROS topic graph, connected devices, Sandbox). Optional **captive portal** (Nodogsplash): when enabled, new WiFi clients are redirected here on first browse.
 - **Single image** – Flash one image to each Pi; first boot runs Ansible to configure the hub
+- **Limited LLM support** – Optional variant adds Ollama, Whisper (speech-to-text), and a ROS Action for multimodal LLM requests. Requires 8 GB+ RAM.
 
 ---
 
