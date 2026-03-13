@@ -103,7 +103,7 @@ ansible-playbook -i localhost, -c local playbook.yml \
 touch /etc/buoy_configured 2>/dev/null || true
 
 echo ""
-echo "Buoy installed. Command center: http://localhost (or http://$(hostname))"
+echo "Buoy installed. Web portal: http://localhost (or http://$(hostname))"
 if [ "$WIFI_AP_ENABLE" = true ]; then
   echo "WiFi AP: Connect to the Buoy network and open http://buoy.buoy"
 fi

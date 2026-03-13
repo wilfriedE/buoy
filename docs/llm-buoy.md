@@ -20,7 +20,7 @@ flowchart TB
             Rosbridge[rosbridge port 9090]
         end
 
-        CC[Command Center port 80]
+        CC[Web portal port 80]
         DNS[dnsmasq .buoy DNS]
     end
 
@@ -85,7 +85,7 @@ For simple single-turn requests, use `[{"role": "user", "content": "..."}]`. For
 
 **Direct access:** `http://llm.buoy:11434` (or `http://10.3.141.1:11434`)
 
-**Via command center proxy:** `http://buoy.buoy/api/llm/...` – forwards to Ollama. If Ollama is unreachable, returns 503 with `{"error": "LLM service not available"}`.
+**Via web portal proxy:** `http://buoy.buoy/api/llm/...` – forwards to Ollama. If Ollama is unreachable, returns 503 with `{"error": "LLM service not available"}`.
 
 Ollama exposes an OpenAI-compatible API. **Choose the model based on modality:**
 - **Text/audio:** `{"model": "qwen2.5:1.5b", "messages": [...]}`
@@ -239,11 +239,11 @@ Run with `ROS_DOMAIN_ID=0` on the Buoy WiFi. To run natively on the Pi, build th
 
 ## Build variants
 
-- **Basic:** `uv run build` – ROS, command center, WiFi, DNS. No LLM.
+- **Basic:** `uv run build` – ROS, web portal, WiFi, DNS. No LLM.
 - **LLM:** `uv run build --with-llm` – same + Ollama, Whisper, LLM node. Requires 8GB Pi 5.
 - **Both:** `uv run build --both` – produces `buoy_build.img` and `buoy_build_llm.img`.
 
-When using the basic image, the command center shows "LLM service not available" if you try to use the `/api/llm` proxy.
+When using the basic image, the web portal shows "LLM service not available" if you try to use the `/api/llm` proxy.
 
 ---
 

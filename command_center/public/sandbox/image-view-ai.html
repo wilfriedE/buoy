@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="/dist/tailwind.css" />
   <script src="/vendor/roslib.min.js"></script>
 </head>
-<body class="min-h-screen text-slate-200">
-  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+<body class="min-h-screen bg-slate-900 text-slate-200">
+  <nav class="border-b border-slate-600/50 bg-slate-900/50 backdrop-blur">
     <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <a href="/" class="flex items-center gap-3">
@@ -17,20 +17,37 @@
           <span class="text-lg font-semibold text-white">AI Image View</span>
         </a>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
-        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
-        <a href="/gamepad.html" class="nav-link text-sm text-slate-400">Gamepad & Joysticks</a>
-        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
-        <a href="/sandbox/" class="nav-link text-sm text-slate-400">Sandbox</a>
-        <a href="/docs/llm-buoy.md" class="nav-link text-sm text-slate-400">Docs</a>
-        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Checking…</span>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Checking…</span>
       </div>
     </div>
   </nav>
 
   <main class="max-w-4xl mx-auto px-4 py-8">
-    <p class="text-slate-400 mb-6">Upload an image and ask the vision model (Moondream) to describe or analyze it. Uses ROS 2 Action <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">/llm/chat</code> with <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">modality: "image"</code>, or HTTP when ROS is unavailable.</p>
+    <p class="text-slate-300 mb-6">Upload an image and ask the vision model (Moondream) to describe or analyze it. Uses ROS 2 Action <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">/llm/chat</code> with <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">modality: "image"</code>, or HTTP when ROS is unavailable.</p>
 
     <div id="llm-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
       LLM not available. Check that Ollama is running and the proxy is configured.
@@ -38,23 +55,23 @@
 
     <div class="grid md:grid-cols-2 gap-6">
       <div class="space-y-4">
-        <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+        <div class="bg-slate-800 rounded-xl border border-slate-600/50 overflow-hidden">
           <div id="drop-zone" class="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center cursor-pointer hover:border-sky-500/50 transition">
-            <p class="text-slate-400 mb-2">Drop an image here or click to select</p>
+            <p class="text-slate-300 mb-2">Drop an image here or click to select</p>
             <input id="file-input" type="file" accept="image/*" capture="environment" class="hidden">
             <img id="preview" class="max-h-64 mx-auto rounded hidden" alt="Preview" />
           </div>
         </div>
         <div class="flex gap-2">
           <input id="prompt" type="text" placeholder="e.g. Describe this image in detail" value="Describe this image in detail."
-            class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
+            class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
           <button id="send" disabled class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
             Analyze
           </button>
         </div>
       </div>
-      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
-        <h3 class="text-sm font-medium text-slate-400 mb-2">AI Response</h3>
+      <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-4">
+        <h3 class="text-sm font-medium text-slate-300 mb-2">AI Response</h3>
         <div id="response" class="font-mono text-sm text-slate-200 min-h-[8rem]">Upload an image and click Analyze.</div>
       </div>
     </div>
@@ -220,17 +237,17 @@
           if (available) {
             llmUnavailableEl.classList.add('hidden');
             sendBtn.disabled = !imageBase64;
-            setStatus('bg-emerald-500/20 text-emerald-400', 'LLM available');
+            setStatus('bg-emerald-500/20 text-emerald-300', 'LLM available');
           } else {
             llmUnavailableEl.classList.remove('hidden');
             sendBtn.disabled = true;
-            setStatus('bg-slate-500/20 text-slate-400', 'LLM not available');
+            setStatus('bg-slate-500/20 text-slate-300', 'LLM not available');
           }
         })
         .catch(() => {
           llmUnavailableEl.classList.remove('hidden');
           sendBtn.disabled = true;
-          setStatus('bg-red-500/20 text-red-400', 'Status check failed');
+          setStatus('bg-red-500/20 text-red-300', 'Status check failed');
         });
     })();
   </script>

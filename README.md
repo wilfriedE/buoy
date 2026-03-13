@@ -6,7 +6,7 @@
 
 **Your ROS 2 hub that keeps the network afloat.**
 
-Built for [MASER](https://www.maserdc.org/) and educational purposes. Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local `.buoy` DNS, and a web command center. No desktop or display on the Pi—all UIs are web-based from devices on the WiFi.
+Built for [MASER](https://www.maserdc.org/) and educational purposes. Headless ROS 2 Jazzy hub for Raspberry Pi 5: WiFi access point (hostapd), local `.buoy` DNS, and a web portal. No desktop or display on the Pi—all UIs are web-based from devices on the WiFi.
 
 ---
 
@@ -24,7 +24,7 @@ The easiest way to get started is to use a pre-built image from the [GitHub Rele
 
 | Image | Description |
 |-------|-------------|
-| **Buoy** (basic) | ROS 2 + rosbridge, WiFi AP, command center. |
+| **Buoy** (basic) | ROS 2 + rosbridge, WiFi AP, web portal. |
 | **Buoy LLM** | Same as basic, plus Ollama, Whisper, and an LLM ROS node. Requires 8 GB+ RAM. |
 
 ### Quick start (3 steps)
@@ -40,7 +40,7 @@ The easiest way to get started is to use a pre-built image from the [GitHub Rele
 
 4. **Insert the SD card**, power on the Pi, and wait **10–20 minutes** for first boot (the system loads Docker images from the card; it may feel slow until that finishes).
 
-5. **Connect to the Buoy WiFi** (default SSID: `Buoy`, password: `ChangeMe`) and open **http://buoy.buoy** in your browser for the command center.
+5. **Connect to the Buoy WiFi** (default SSID: `Buoy`, password: `ChangeMe`) and open **http://buoy.buoy** in your browser for the web portal.
 
 ### Optional: customize before flashing
 
@@ -59,7 +59,7 @@ curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh 
 ```
 
 **Options:**
-- `--no-wifi` – Headless only (no hostapd). Default. Access the command center at `http://localhost` or `http://<host-ip>`.
+- `--no-wifi` – Headless only (no hostapd). Default. Access the web portal at `http://localhost` or `http://<host-ip>`.
 - `--wifi` – Enable WiFi AP if you have a WiFi interface (e.g. `wlan0`). Connect to the Buoy network and open `http://buoy.buoy`.
 
 **With WiFi AP:**
@@ -80,20 +80,20 @@ See [docs/install-linux.md](docs/install-linux.md) for details.
 ## Features
 
 - **WiFi AP** – Native hostapd + dnsmasq so devices connect to one SSID and get DHCP/DNS from the Pi
-- **Local DNS** – `buoy.buoy`, `hub.buoy`, and `hostname.buoy` for connected devices. After joining WiFi, open **http://buoy.buoy** for the command center.
+- **Local DNS** – `buoy.buoy`, `hub.buoy`, and `hostname.buoy` for connected devices. After joining WiFi, open **http://buoy.buoy** for the web portal.
 - **ROS 2 Jazzy** – Runs in Docker with **host networking** so the hub and WiFi clients share the same DDS multicast domain
-- **Command center** – Web dashboard (ROS topic graph, connected devices, Sandbox). Optional **captive portal** (Nodogsplash): when enabled, new WiFi clients are redirected here on first browse.
+- **Web portal** – Dashboard (ROS topic graph, connected devices, Sandbox). Optional **captive portal** (Nodogsplash): when enabled, new WiFi clients are redirected here on first browse.
 - **Single image** – Flash one image to each Pi; first boot runs Ansible to configure the hub
 
 ---
 
 ## After flashing
 
-- **Command center:** Connect to the Buoy WiFi and open **http://buoy.buoy**
+- **Web portal:** Connect to the Buoy WiFi and open **http://buoy.buoy**
 - **SSH:** `ssh <user>@buoy.buoy` — user and password are set when building the image or via Pi Imager's settings gear. Pre-built images default to `maser` / `ChangeMe`.
 - **Rosbridge:** `ws://buoy.buoy:9090` for WebSocket clients (Python, JavaScript, Foxglove Studio)
 
-For more on connecting devices and using ROS, see the [User guide: connecting and interacting with ROS devices](docs/ros-hub.md). For the LLM variant, see [LLM variant (Ollama, Whisper, ROS node)](docs/llm-buoy.md).
+For more on connecting devices and using ROS, see [Connect your device](docs/connect-your-device.md) (Pi Zero, Linux, Mac, Windows) and the [User guide: connecting and interacting with ROS devices](docs/ros-hub.md). For the LLM variant, see [LLM variant (Ollama, Whisper, ROS node)](docs/llm-buoy.md).
 
 ---
 
@@ -131,7 +131,7 @@ ansible-playbook -i localhost, -c local playbook.yml
 
 ### Quick links
 
-- **[Command center – local dev](command_center/README.md)** – Run the dashboard locally with live reload for UI work
+- **[Web portal – local dev](command_center/README.md)** – Run the dashboard locally with live reload for UI work
 - **[Changelog](CHANGELOG.md)** – Notable changes and migration notes
 - **[Image build: flash and first boot](image/README.md)** – Build details, first boot, offline deployment
 - **[Build image with QEMU](image/BUILD-QEMU.md)** – Manual build on Linux, macOS, or WSL2

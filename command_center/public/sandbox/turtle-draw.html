@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/dist/tailwind.css" />
   <script src="/vendor/roslib.min.js"></script>
 </head>
-<body class="min-h-screen text-slate-200">
+<body class="min-h-screen bg-slate-900 text-slate-200">
   <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
     <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
@@ -17,27 +17,46 @@
           <span class="text-lg font-semibold text-white">Turtle Draw</span>
         </a>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
-        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
-        <a href="/gamepad.html" class="nav-link text-sm text-slate-400">Gamepad & Joysticks</a>
-        <a href="/sandbox/" class="nav-link text-sm text-slate-400">Sandbox</a>
-        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Connecting…</span>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Connecting…</span>
       </div>
     </div>
   </nav>
 
   <main class="max-w-4xl mx-auto px-4 py-8">
-    <p class="text-slate-400 mb-6">Control a turtle with Twist messages. Select a controller topic (e.g. from <a href="/gamepad.html" class="text-sky-400 hover:underline">Gamepad & Joysticks</a>) to drive the turtle. The turtle draws a trail as it moves.</p>
+    <p class="text-slate-300 mb-6">Control a turtle with Twist messages. Select a controller topic (e.g. from <a href="/gamepad.html" class="text-sky-300 hover:underline">Gamepad & Joysticks</a>) to drive the turtle. The turtle draws a trail as it moves.</p>
 
     <div id="ros-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
       ROS (rosbridge) not connected. Connect to the buoy WiFi.
     </div>
 
-    <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6 space-y-4">
+    <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-6 space-y-4">
       <div class="flex flex-wrap items-center gap-4">
         <div>
-          <label class="block text-sm text-slate-400 mb-1">Controller (Twist topic)</label>
+          <label class="block text-sm text-slate-300 mb-1">Controller (Twist topic)</label>
           <select id="topic-select" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 min-w-[200px]">
             <option value="">— Select topic —</option>
           </select>
@@ -49,7 +68,7 @@
           Clear canvas
         </button>
       </div>
-      <p id="no-twist-topics" class="hidden text-sm text-amber-400">No Twist topics found. <a href="/gamepad.html" class="text-sky-400 hover:underline">Register a gamepad</a> first.</p>
+      <p id="no-twist-topics" class="hidden text-sm text-amber-300">No Twist topics found. <a href="/gamepad.html" class="text-sky-300 hover:underline">Register a gamepad</a> first.</p>
       <div class="rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900">
         <canvas id="canvas" width="640" height="480" class="w-full max-w-full block cursor-crosshair"></canvas>
       </div>
@@ -218,19 +237,19 @@
       clearBtn.addEventListener('click', clearCanvas);
 
       ros.on('connection', function() {
-        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+        setStatus('bg-emerald-500/20 text-emerald-300', 'Connected');
         rosUnavailableEl.classList.add('hidden');
         refreshTopics();
         initCanvas();
       });
 
       ros.on('error', function() {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
         rosUnavailableEl.classList.remove('hidden');
       });
 
       ros.on('close', function() {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
         rosUnavailableEl.classList.remove('hidden');
       });
     })();

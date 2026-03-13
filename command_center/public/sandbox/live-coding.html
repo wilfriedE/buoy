@@ -16,7 +16,7 @@
   <script src="/vendor/codemirror.min.js"></script>
   <script src="/vendor/codemirror-javascript.js"></script>
 </head>
-<body class="min-h-screen text-slate-200">
+<body class="min-h-screen bg-slate-900 text-slate-200">
   <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
@@ -25,20 +25,37 @@
           <span class="text-lg font-semibold text-white">Live Coding</span>
         </a>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
-        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
-        <a href="/gamepad.html" class="nav-link text-sm text-slate-400">Gamepad & Joysticks</a>
-        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
-        <a href="/sandbox/" class="nav-link text-sm text-slate-400">Sandbox</a>
-        <a href="/docs/ros-hub.md" class="nav-link text-sm text-slate-400">Docs</a>
-        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Connecting…</span>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Connecting…</span>
       </div>
     </div>
   </nav>
 
   <main class="max-w-5xl mx-auto px-4 py-8">
-    <p class="text-slate-400 mb-6">Write and run ROS 2 JavaScript in the browser. You have access to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ros</code> (ROSLIB connection) and <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ROSLIB</code>. Use <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">log(...)</code> to print to the console. <kbd class="px-1.5 py-0.5 rounded bg-slate-700 text-xs">Ctrl+Enter</kbd> to run.</p>
+    <p class="text-slate-300 mb-6">Write and run ROS 2 JavaScript in the browser. You have access to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ros</code> (ROSLIB connection) and <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ROSLIB</code>. Use <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">log(...)</code> to print to the console. <kbd class="px-1.5 py-0.5 rounded bg-slate-700 text-xs">Ctrl+Enter</kbd> to run.</p>
 
     <div id="ros-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
       ROS (rosbridge) not connected. Connect to the buoy WiFi.
@@ -47,7 +64,7 @@
     <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
       <div class="flex items-center justify-between px-4 py-2 border-b border-slate-700/50">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-slate-400">Editor</span>
+          <span class="text-sm font-medium text-slate-300">Editor</span>
           <select id="example-select" class="text-sm px-2 py-1 rounded bg-slate-900 border border-slate-600 text-slate-300">
             <option value="">— Load example —</option>
             <option value="publish">Publish to /chatter</option>
@@ -71,7 +88,7 @@ pub.publish(new ROSLIB.Message({ data: 'Hello from Live Coding!' }));
 log('Published');</textarea>
       </div>
       <div class="border-t border-slate-700/50">
-        <div class="px-4 py-2 text-sm font-medium text-slate-400">Console</div>
+        <div class="px-4 py-2 text-sm font-medium text-slate-300">Console</div>
         <div id="console" class="max-h-48 overflow-y-auto p-4 font-mono text-sm bg-slate-950/50 text-slate-300 min-h-[6rem]">Run your code to see output here.</div>
       </div>
     </div>
@@ -156,19 +173,19 @@ log('Published Twist to /cmd_vel/test');`
       });
 
       ros.on('connection', function() {
-        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+        setStatus('bg-emerald-500/20 text-emerald-300', 'Connected');
         rosUnavailableEl.classList.add('hidden');
         runBtn.disabled = false;
       });
 
       ros.on('error', function() {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
         rosUnavailableEl.classList.remove('hidden');
         runBtn.disabled = true;
       });
 
       ros.on('close', function() {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
         rosUnavailableEl.classList.remove('hidden');
         runBtn.disabled = true;
       });

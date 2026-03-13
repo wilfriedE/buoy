@@ -4,11 +4,11 @@ This directory describes how to build a **single image** that you can flash to e
 
 ## Base OS: headless (Lite or server)
 
-Use **Raspberry Pi OS 64-bit (Trixie) – Lite** (or the “other” / server variant without a desktop). Do **not** use the full desktop image; the stack runs entirely headless (WiFi AP, Docker, command center, and captive portal are all accessed via browser from other devices).
+Use **Raspberry Pi OS 64-bit (Trixie) – Lite** (or the “other” / server variant without a desktop). Do **not** use the full desktop image; the stack runs entirely headless (WiFi AP, Docker, web portal, and captive portal are all accessed via browser from other devices).
 
 ## No internet during initial setup
 
-The playbook supports **offline first boot**. Set `offline_first_boot: true` in `ansible/group_vars/all.yml` (this is the default). The image must be **built once with internet** so that Docker, hostapd, Docker images, and command center dependencies are already on the disk. When you flash that image and boot a Pi with no network, the first-boot service runs the playbook and only applies configuration and starts services; it does not install packages or pull images.
+The playbook supports **offline first boot**. Set `offline_first_boot: true` in `ansible/group_vars/all.yml` (this is the default). The image must be **built once with internet** so that Docker, hostapd, Docker images, and web portal dependencies are already on the disk. When you flash that image and boot a Pi with no network, the first-boot service runs the playbook and only applies configuration and starts services; it does not install packages or pull images.
 
 ## Build the image (with network)
 
@@ -29,7 +29,7 @@ Do this once on a machine or Pi that has internet. To build **without a Raspberr
    cd /opt/buoy  # or wherever you cloned the repo
    sudo ansible-playbook -i localhost, -c local ansible/playbook.yml
    ```
-   This installs Docker, configures hostapd and dnsmasq for the WiFi AP, builds ROS 2 images, runs `pnpm install` for the command center, and configures everything.
+   This installs Docker, configures hostapd and dnsmasq for the WiFi AP, builds ROS 2 images, runs `pnpm install` for the web portal, and configures everything.
 4. (Optional) Save Docker images to a tarball for fully offline clones:
    ```bash
    cd /opt/buoy/docker && docker save -o docker_images.tar $(docker compose images -q)
@@ -73,7 +73,7 @@ Downloads the base image if needed, builds the Buoy image, and creates the Pi Im
 - `uv run build-image` – build the image (or `./image/build-with-docker.sh`)
 - `uv run create-manifest` – create Pi Imager manifest
 
-The build **automatically expands the image by 4 GiB** and grows the root partition. Output: **`build/buoy_build.img`** and **`build/buoy.rpi-imager-manifest`**. **WiFi uses native hostapd + dnsmasq** on the host (RaspAP Docker fails on Pi due to driver limitations). The command center and ROS run on the host/Docker. ROS Docker images are built during the image build and baked into `docker_images.tar` for offline first boot. If the script fails with "Could not create loop device" (e.g. on Mac), use Linux/WSL2 or see **[BUILD-QEMU.md](BUILD-QEMU.md)** for manual steps.
+The build **automatically expands the image by 4 GiB** and grows the root partition. Output: **`build/buoy_build.img`** and **`build/buoy.rpi-imager-manifest`**. **WiFi uses native hostapd + dnsmasq** on the host (RaspAP Docker fails on Pi due to driver limitations). The web portal and ROS run on the host/Docker. ROS Docker images are built during the image build and baked into `docker_images.tar` for offline first boot. If the script fails with "Could not create loop device" (e.g. on Mac), use Linux/WSL2 or see **[BUILD-QEMU.md](BUILD-QEMU.md)** for manual steps.
 
 **Expected build output:** You may see `failed to start daemon: Devices cgroup isn't mounted` and `Cannot connect to the Docker daemon`. These are expected when building inside Docker/QEMU—the chroot lacks full cgroup support. WiFi uses native hostapd (not Docker); on first boot the playbook configures hostapd and dnsmasq on the host.
 
@@ -91,7 +91,7 @@ Or double-click the manifest file to open it in Imager. The manifest uses `init_
 
 ## Deploy (no internet)
 
-Flash the built image to each Pi 5, insert the SD, and power on **without network**. The first-boot service runs the playbook with `offline_first_boot: true`, which configures hostapd and dnsmasq for WiFi, loads Docker images (~3.5 GB for basic, ~8 GB for LLM), starts ROS Docker Compose, command center, and other services.
+Flash the built image to each Pi 5, insert the SD, and power on **without network**. The first-boot service runs the playbook with `offline_first_boot: true`, which configures hostapd and dnsmasq for WiFi, loads Docker images (~3.5 GB for basic, ~8 GB for LLM), starts ROS Docker Compose, web portal, and other services.
 
 **First boot can take 10–20 minutes** on SD card due to `docker load` (reading and decompressing the baked tar). The system may feel sluggish during this; `docker ps` and other commands will be slow until the load completes. ROS and LLM containers start after the load finishes. The SSH user (see `buoy_ssh_user` in `ansible/group_vars/all.yml`) is added to the `docker` group during first boot—log out and back in (or reboot) to run `docker` without `sudo`.
 
@@ -126,9 +126,9 @@ You have no display, so use one of these to verify the Pi is up and see what’s
    - The playbook creates user `maser` with sudo access. Override in `ansible/group_vars/all.yml` (`buoy_ssh_user`, `buoy_ssh_password`) before building the image.
 5. **Check first boot and services:**
    - `cat /etc/buoy_configured` — present if the first-boot playbook completed.
-   - `sudo systemctl status buoy-command-center` — command center.
+   - `sudo systemctl status buoy-command-center` — web portal.
    - `sudo docker ps` — ROS containers.
-   - From a device on the Pi’s **WiFi** (Buoy): open http://buoy.buoy for the command center.
+   - From a device on the Pi’s **WiFi** (Buoy): open http://buoy.buoy for the web portal.
 
 SSH is enabled by the playbook so the Pi accepts logins as soon as it has an IP.
 

@@ -23,7 +23,7 @@ Download the install script from a [release](https://github.com/wilfriedE/buoy/r
 curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh | sudo bash
 ```
 
-This installs in headless mode (no WiFi AP). Access the command center at `http://localhost` or `http://<your-machine-ip>`.
+This installs in headless mode (no WiFi AP). Access the web portal at `http://localhost` or `http://<your-machine-ip>`.
 
 ## Options
 
@@ -54,10 +54,10 @@ sudo ./install.sh --wifi      # with WiFi AP
 - **Docker** (Docker CE from Docker's official repo)
 - **Ansible** (to run the playbook)
 - **ROS 2** containers (rosbridge) via Docker Compose
-- **Command center** (Node.js web app on port 80)
+- **Web portal** (Node.js web app on port 80)
 - **WiFi AP** (hostapd + dnsmasq) – only when `--wifi` is used
 
-## Accessing the command center
+## Accessing the web portal
 
 | Mode | URL |
 |------|-----|
