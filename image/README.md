@@ -128,7 +128,7 @@ You have no display, so use one of these to verify the Pi is up and see what’s
    - `cat /etc/buoy_configured` — present if the first-boot playbook completed.
    - `sudo systemctl status buoy-command-center` — web portal.
    - `sudo docker ps` — ROS containers.
-   - From a device on the Pi’s **WiFi** (Buoy): open http://buoy.buoy for the web portal.
+   - From a device on the Pi’s **WiFi** (Buoy): open http://buoy.buoy or http://10.3.141.1 for the web portal.
 
 SSH is enabled by the playbook so the Pi accepts logins as soon as it has an IP.
 

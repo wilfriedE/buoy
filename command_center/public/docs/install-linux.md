@@ -37,7 +37,7 @@ This installs in headless mode (no WiFi AP). Access the web portal at `http://lo
 curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh | sudo bash -s -- --wifi
 ```
 
-Connect to the Buoy WiFi (default SSID: `Buoy`, password: `ChangeMe`) and open `http://buoy.buoy`.
+Connect to the Buoy WiFi (default SSID: `Buoy`, password: `ChangeMe`) and open `http://buoy.buoy` or `http://10.3.141.1`.
 
 ## From a local clone
 
@@ -62,11 +62,11 @@ sudo ./install.sh --wifi      # with WiFi AP
 | Mode | URL |
 |------|-----|
 | Headless (`--no-wifi`) | `http://localhost` or `http://<host-ip>` |
-| With WiFi AP (`--wifi`) | `http://buoy.buoy` (from devices on the Buoy WiFi) |
+| With WiFi AP (`--wifi`) | `http://buoy.buoy` or `http://10.3.141.1` (from devices on the Buoy WiFi) |
 
 ## Rosbridge
 
-WebSocket clients can connect to `ws://<host-ip>:9090` (or `ws://buoy.buoy:9090` when using WiFi AP).
+WebSocket clients can connect to `ws://<host-ip>:9090` (or `ws://buoy.buoy:9090` or `ws://10.3.141.1:9090` when using WiFi AP).
 
 ## Customization
 

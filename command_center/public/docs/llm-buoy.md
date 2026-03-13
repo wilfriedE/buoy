@@ -25,7 +25,7 @@ flowchart TB
     end
 
     WebApp -->|http://llm.buoy:11434 or /api/llm proxy| Ollama
-    WebApp -->|http://buoy.buoy/api/llm| CC
+    WebApp -->|http://buoy.buoy/api/llm or http://10.3.141.1/api/llm| CC
     CC -->|proxy| Ollama
 
     ROSNode -->|/llm/chat Action| LLMNode
@@ -85,7 +85,7 @@ For simple single-turn requests, use `[{"role": "user", "content": "..."}]`. For
 
 **Direct access:** `http://llm.buoy:11434` (or `http://10.3.141.1:11434`)
 
-**Via web portal proxy:** `http://buoy.buoy/api/llm/...` – forwards to Ollama. If Ollama is unreachable, returns 503 with `{"error": "LLM service not available"}`.
+**Via web portal proxy:** `http://buoy.buoy/api/llm/...` or `http://10.3.141.1/api/llm/...` – forwards to Ollama. If Ollama is unreachable, returns 503 with `{"error": "LLM service not available"}`.
 
 Ollama exposes an OpenAI-compatible API. **Choose the model based on modality:**
 - **Text/audio:** `{"model": "qwen2.5:1.5b", "messages": [...]}`
@@ -233,7 +233,7 @@ Run with `ROS_DOMAIN_ID=0` on the Buoy WiFi. To run natively on the Pi, build th
 
 **CLI test:** `ros2 action send_goal /llm/chat llm_msgs/action/Chat "{prompt: 'Hi', modality: 'text', payload_base64: '', timeout_sec: 30, requester_id: 'cli'}"`
 
-**Web clients:** For browser-based clients, use the HTTP API (`http://buoy.buoy/api/llm`) or rosbridge. Rosbridge supports ROS 2 actions; check your client library for ActionClient support.
+**Web clients:** For browser-based clients, use the HTTP API (`http://buoy.buoy/api/llm or http://10.3.141.1/api/llm`) or rosbridge. Rosbridge supports ROS 2 actions; check your client library for ActionClient support.
 
 ---
 

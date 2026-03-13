@@ -11,7 +11,7 @@ Before diving in, make sure:
 - **Hub is running** – Someone has set up the Buoy hub (Raspberry Pi or Linux) and it's powered on.
 - **You have credentials** – WiFi SSID and passphrase. Default is `Buoy` / `ChangeMe`. The hub operator may have changed these.
 - **You're on the network** – You can join the Buoy WiFi (or the same LAN if the hub runs headless).
-- **Quick check** – Run `ping buoy.buoy` or open `http://buoy.buoy` in a browser. If DNS doesn't work, use IP `10.3.141.1` instead.
+- **Quick check** – Open `http://buoy.buoy` or `http://10.3.141.1` in a browser. Use the IP if the hostname doesn't resolve.
 
 ---
 
@@ -32,7 +32,8 @@ Get your first program running in about 5 minutes. You can use **Python** or **J
    """Subscribe to Twist from the Buoy hub. Run: python3 twist_listener.py"""
    from roslibpy import Ros, Topic
 
-   ros = Ros('buoy.buoy', 9090)
+   HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
+   ros = Ros(HOST, 9090)
    ros.run()
 
    def on_twist(msg):
@@ -56,17 +57,17 @@ Get your first program running in about 5 minutes. You can use **Python** or **J
    ```
    Run: `python3 twist_listener.py`
 
-3. **Generate data** (~1 min): Open `http://buoy.buoy` → **Gamepad & Joysticks**, register a controller (e.g. name `gamepad`), and move the stick.
+3. **Generate data** (~1 min): Open `http://buoy.buoy` or `http://10.3.141.1` → **Gamepad & Joysticks**, register a controller (e.g. name `gamepad`), and move the stick.
 
 4. **See output** – Your terminal should print Twist messages. Success!
 
 ### Option B: JavaScript (browser)
 
-1. **No install needed** – Open [Live Coding](http://buoy.buoy/sandbox/live-coding.html) in your browser (you must be on Buoy WiFi).
+1. **No install needed** – Open [Live Coding](http://buoy.buoy/sandbox/live-coding.html) (or `http://10.3.141.1/sandbox/live-coding.html`) in your browser (you must be on Buoy WiFi).
 
 2. **Paste and run** – Replace the default code with the JavaScript example from the [Subscribe to Twist](#subscribe-to-twist-joystick-commands) section below, then press **Ctrl+Enter** to run.
 
-3. **Generate data** – Open another tab: `http://buoy.buoy` → **Gamepad & Joysticks**, register a controller, and move the stick.
+3. **Generate data** – Open another tab: `http://buoy.buoy` or `http://10.3.141.1` → **Gamepad & Joysticks**, register a controller, and move the stick.
 
 4. **See output** – Check the Live Coding console for Twist messages.
 
@@ -98,7 +99,7 @@ flowchart LR
 
 **Key concepts:**
 
-- **Rosbridge** – Lets you talk to ROS from Python or JavaScript without installing ROS. Connects via WebSocket to `ws://buoy.buoy:9090`. Works on almost any device.
+- **Rosbridge** – Lets you talk to ROS from Python or JavaScript without installing ROS. Connects via WebSocket to `ws://buoy.buoy:9090` (or `ws://10.3.141.1:9090` if the hostname doesn't resolve). Works on almost any device.
 - **Native ROS 2** – Full ROS 2 (rclpy) on your device. Connects directly via DDS. Requires ROS 2 Jazzy install.
 - **Where joystick data comes from** – Someone opens the web portal → **Gamepad & Joysticks**, registers a controller, and it publishes Twist messages to `/cmd_vel/<name>`. Your script subscribes to that topic.
 
@@ -134,9 +135,9 @@ Follow these stages to build skills step by step:
 
 | Stage | What to do | Time | Outcome |
 |-------|------------|------|---------|
-| **1. Connect** | Join Buoy WiFi, verify `http://buoy.buoy` loads | ~1 min | On the network |
+| **1. Connect** | Join Buoy WiFi, verify `http://buoy.buoy` or `http://10.3.141.1` loads | ~1 min | On the network |
 | **2. Subscribe** | Run the rosbridge subscribe script, see Twist data | ~2 min | First program works |
-| **3. Do something** | Open [Turtle Draw](http://buoy.buoy/sandbox/turtle-draw.html), control it with Gamepad; or use [Listen & Publish](http://buoy.buoy/ros-try.html) | ~5 min | See data drive something |
+| **3. Do something** | Open [Turtle Draw](http://buoy.buoy/sandbox/turtle-draw.html) or [Listen & Publish](http://buoy.buoy/ros-try.html) (use `http://10.3.141.1` if hostname fails), control with Gamepad | ~5 min | See data drive something |
 | **4. Publish** | Run a publish script, or use Listen & Publish to send messages | ~3 min | Send data to ROS |
 | **5. Go further** | Try native ROS 2, [Foxglove Studio](https://studio.foxglove.dev), or build your own node | Variable | Deeper exploration |
 
@@ -170,7 +171,7 @@ Follow these stages to build skills step by step:
    ```
    Or: `pip3 install roslibpy` or `python3 -m pip install roslibpy`
 
-2. Verify: Run the Quick start script above. If `buoy.buoy` doesn't resolve, use `10.3.141.1` instead.
+2. Verify: Run the Quick start script above. Use `10.3.141.1` as host if `buoy.buoy` doesn't resolve.
 
 ### Base code: Subscribe to joystick (rosbridge)
 
@@ -226,7 +227,7 @@ finally:
 pip install roslibpy
 ```
 
-Use the Quick start script or the Pi Zero script above (replace `buoy.buoy` with `10.3.141.1` if needed).
+Use the Quick start or Pi Zero script above. Use `10.3.141.1` if `buoy.buoy` doesn't resolve.
 
 ### Native ROS 2 setup
 
@@ -320,7 +321,7 @@ Same as Pi Zero script above.
 pip install roslibpy
 ```
 
-Use the Quick start or Pi Zero script. If `buoy.buoy` doesn't resolve, use `10.3.141.1`.
+Use the Quick start or Pi Zero script. Use `10.3.141.1` if `buoy.buoy` doesn't resolve.
 
 ### Base code: Subscribe to joystick (rosbridge)
 
@@ -341,7 +342,8 @@ Use these templates as a starting point. Prefer **rosbridge** if your device doe
 ```python
 from roslibpy import Ros, Topic
 
-ros = Ros('buoy.buoy', 9090)
+HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
+ros = Ros(HOST, 9090)
 ros.run()
 
 def on_twist(msg):
@@ -360,7 +362,7 @@ finally:
 **JavaScript**
 ```javascript
 // Browser: use Live Coding or include roslib. Node: npm install roslib
-const ros = new ROSLIB.Ros({ url: 'ws://buoy.buoy:9090' });
+const ros = new ROSLIB.Ros({ url: 'ws://buoy.buoy:9090' });  // or 'ws://10.3.141.1:9090'
 ros.on('connection', () => {
   const listener = new ROSLIB.Topic({
     ros, name: '/cmd_vel/gamepad', messageType: 'geometry_msgs/msg/Twist'
@@ -401,22 +403,35 @@ rclpy.shutdown()
 :::code-tabs
 **Python**
 ```python
+#!/usr/bin/env python3
+"""Publish Twist to Buoy via rosbridge. Run: python3 twist_publisher.py"""
 from roslibpy import Ros, Topic
+import time
 
-ros = Ros('buoy.buoy', 9090)
+HOST = 'buoy.buoy'  # or '10.3.141.1' if DNS fails
+ros = Ros(HOST, 9090)
 ros.run()
 
 pub = Topic(ros, '/cmd_vel/my_robot', 'geometry_msgs/msg/Twist')
 pub.advertise()
-pub.publish({'linear': {'x': 0.5, 'y': 0, 'z': 0}, 'angular': {'x': 0, 'y': 0, 'z': 0}})
 
-import time
-time.sleep(0.5)
-ros.terminate()
+def make_twist(linear_x=0, angular_z=0):
+    return {'linear': {'x': linear_x, 'y': 0, 'z': 0}, 'angular': {'x': 0, 'y': 0, 'z': angular_z}}
+
+print("Publishing Twist to /cmd_vel/my_robot. Open Turtle Draw and select this topic.")
+print("Press Ctrl+C to stop.")
+try:
+    while True:
+        pub.publish(make_twist(0.3, 0))  # drive forward
+        time.sleep(0.1)
+except KeyboardInterrupt:
+    pub.publish(make_twist(0, 0))  # stop before exit
+finally:
+    ros.terminate()
 ```
 **JavaScript**
 ```javascript
-const ros = new ROSLIB.Ros({ url: 'ws://buoy.buoy:9090' });
+const ros = new ROSLIB.Ros({ url: 'ws://buoy.buoy:9090' });  // or 'ws://10.3.141.1:9090'
 ros.on('connection', () => {
   const pub = new ROSLIB.Topic({
     ros, name: '/cmd_vel/my_robot', messageType: 'geometry_msgs/msg/Twist'
@@ -460,7 +475,8 @@ rclpy.shutdown()
 ```python
 from roslibpy import Ros, Topic
 
-ros = Ros('buoy.buoy', 9090)
+HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
+ros = Ros(HOST, 9090)
 ros.run()
 
 def on_string(msg):
@@ -478,7 +494,7 @@ finally:
 ```
 **JavaScript**
 ```javascript
-const ros = new ROSLIB.Ros({ url: 'ws://buoy.buoy:9090' });
+const ros = new ROSLIB.Ros({ url: 'ws://buoy.buoy:9090' });  // or 'ws://10.3.141.1:9090'
 ros.on('connection', () => {
   const listener = new ROSLIB.Topic({
     ros, name: '/chatter', messageType: 'std_msgs/msg/String'
@@ -514,9 +530,9 @@ rclpy.shutdown()
 
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|
-| `buoy.buoy` doesn't resolve | DNS not working | Use `10.3.141.1` as hostname in your script |
-| Connection refused (rosbridge) | Hub unreachable or port closed | Verify `http://buoy.buoy` loads in browser; confirm rosbridge is running on port 9090; check firewall |
-| No Twist messages | No publisher | Open [Gamepad & Joysticks](http://buoy.buoy/gamepad.html), register a controller, move the stick |
+| `buoy.buoy` doesn't resolve | DNS not working | Use `10.3.141.1` as host in your script |
+| Connection refused (rosbridge) | Hub unreachable or port closed | Try `http://10.3.141.1` in browser; confirm rosbridge on port 9090; check firewall |
+| No Twist messages | No publisher | Open [Gamepad & Joysticks](http://buoy.buoy/gamepad.html) (or `http://10.3.141.1/gamepad.html`), register a controller, move the stick |
 | Native: no discovery | Wrong domain or multicast blocked | Set `ROS_DOMAIN_ID=0`; check firewall allows DDS multicast (UDP) |
 | `pip install roslibpy` fails | Python/pip setup | Try `pip3 install roslibpy` or `python3 -m pip install roslibpy`; use a virtual environment if needed; or use the [JavaScript (browser)](#option-b-javascript-browser) option instead |
 
@@ -524,9 +540,9 @@ rclpy.shutdown()
 
 ## Next steps
 
-- **Turtle Draw** – [http://buoy.buoy/sandbox/turtle-draw.html](http://buoy.buoy/sandbox/turtle-draw.html) – Control a turtle with Twist; select a controller topic
-- **Listen & Publish** – [http://buoy.buoy/ros-try.html](http://buoy.buoy/ros-try.html) – Subscribe and publish from the browser
-- **Foxglove Studio** – [studio.foxglove.dev](https://studio.foxglove.dev) – Connect to `ws://buoy.buoy:9090` for visualization
+- **Turtle Draw** – [http://buoy.buoy/sandbox/turtle-draw.html](http://buoy.buoy/sandbox/turtle-draw.html) (or `http://10.3.141.1/sandbox/turtle-draw.html`) – Control a turtle with Twist
+- **Listen & Publish** – [http://buoy.buoy/ros-try.html](http://buoy.buoy/ros-try.html) (or `http://10.3.141.1/ros-try.html`) – Subscribe and publish from the browser
+- **Foxglove Studio** – [studio.foxglove.dev](https://studio.foxglove.dev) – Connect to `ws://buoy.buoy:9090` or `ws://10.3.141.1:9090`
 - **Deeper concepts** – [User guide: connecting and interacting with ROS devices](ros-hub.md) – ROS domains, more examples
 
 ---
@@ -535,8 +551,8 @@ rclpy.shutdown()
 
 | Setting | Value |
 |---------|-------|
-| Hub hostname | `buoy.buoy` (or `10.3.141.1`) |
-| Rosbridge URL | `ws://buoy.buoy:9090` |
+| Hub hostname | `buoy.buoy` or `10.3.141.1` |
+| Rosbridge URL | `ws://buoy.buoy:9090` or `ws://10.3.141.1:9090` |
 | ROS domain | `ROS_DOMAIN_ID=0` |
 | Joystick topic | `/cmd_vel/gamepad` (or `/cmd_vel/<name>`) |
 | Chatter topic | `/chatter` |

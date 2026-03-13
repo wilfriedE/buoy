@@ -40,7 +40,7 @@ The easiest way to get started is to use a pre-built image from the [GitHub Rele
 
 4. **Insert the SD card**, power on the Pi, and wait **10–20 minutes** for first boot (the system loads Docker images from the card; it may feel slow until that finishes).
 
-5. **Connect to the Buoy WiFi** (default SSID: `Buoy`, password: `ChangeMe`) and open **http://buoy.buoy** in your browser for the web portal.
+5. **Connect to the Buoy WiFi** (default SSID: `Buoy`, password: `ChangeMe`) and open **http://buoy.buoy** or **http://10.3.141.1** in your browser for the web portal.
 
 ### Optional: customize before flashing
 
@@ -60,7 +60,7 @@ curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh 
 
 **Options:**
 - `--no-wifi` – Headless only (no hostapd). Default. Access the web portal at `http://localhost` or `http://<host-ip>`.
-- `--wifi` – Enable WiFi AP if you have a WiFi interface (e.g. `wlan0`). Connect to the Buoy network and open `http://buoy.buoy`.
+- `--wifi` – Enable WiFi AP if you have a WiFi interface (e.g. `wlan0`). Connect to the Buoy network and open `http://buoy.buoy` or `http://10.3.141.1`.
 
 **With WiFi AP:**
 ```bash
@@ -80,7 +80,7 @@ See [docs/install-linux.md](docs/install-linux.md) for details.
 ## Features
 
 - **WiFi AP** – Native hostapd + dnsmasq so devices connect to one SSID and get DHCP/DNS from the Pi
-- **Local DNS** – `buoy.buoy`, `hub.buoy`, and `hostname.buoy` for connected devices. After joining WiFi, open **http://buoy.buoy** for the web portal.
+- **Local DNS** – `buoy.buoy`, `hub.buoy`, and `hostname.buoy` for connected devices. After joining WiFi, open **http://buoy.buoy** or **http://10.3.141.1** for the web portal.
 - **ROS 2 Jazzy** – Runs in Docker with **host networking** so the hub and WiFi clients share the same DDS multicast domain
 - **Web portal** – Dashboard (ROS topic graph, connected devices, Sandbox). Optional **captive portal** (Nodogsplash): when enabled, new WiFi clients are redirected here on first browse.
 - **Single image** – Flash one image to each Pi; first boot runs Ansible to configure the hub
@@ -89,9 +89,9 @@ See [docs/install-linux.md](docs/install-linux.md) for details.
 
 ## After flashing
 
-- **Web portal:** Connect to the Buoy WiFi and open **http://buoy.buoy**
-- **SSH:** `ssh <user>@buoy.buoy` — user and password are set when building the image or via Pi Imager's settings gear. Pre-built images default to `maser` / `ChangeMe`.
-- **Rosbridge:** `ws://buoy.buoy:9090` for WebSocket clients (Python, JavaScript, Foxglove Studio)
+- **Web portal:** Connect to the Buoy WiFi and open **http://buoy.buoy** or **http://10.3.141.1**
+- **SSH:** `ssh <user>@buoy.buoy` or `ssh <user>@10.3.141.1` — user and password are set when building the image or via Pi Imager's settings gear. Pre-built images default to `maser` / `ChangeMe`.
+- **Rosbridge:** `ws://buoy.buoy:9090` or `ws://10.3.141.1:9090` for WebSocket clients (Python, JavaScript, Foxglove Studio)
 
 For more on connecting devices and using ROS, see [Connect your device](docs/connect-your-device.md) (Pi Zero, Linux, Mac, Windows) and the [User guide: connecting and interacting with ROS devices](docs/ros-hub.md). For the LLM variant, see [LLM variant (Ollama, Whisper, ROS node)](docs/llm-buoy.md).
 
@@ -128,6 +128,10 @@ git clone https://github.com/wilfriedE/buoy.git
 cd buoy/ansible
 ansible-playbook -i localhost, -c local playbook.yml
 ```
+
+### Planned features
+
+Implementation plans for future features live in [docs/plans/](docs/plans/). Each plan includes context, architecture, step-by-step build instructions, and codebase patterns to follow. Example: [NetworkTables (FRC) bridge](docs/plans/networktables-ros-bridge.md).
 
 ### Quick links
 
