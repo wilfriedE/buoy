@@ -52,13 +52,25 @@
     state: directory
     mode: "0755"
 
+- name: Ensure rsync is installed (for synchronize exclude)
+  ansible.builtin.apt:
+    name: rsync
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure rsync is installed (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name: rsync
+    state: present
+  when: ansible_os_family == 'RedHat'
+
 - name: Copy command center app (exclude node_modules for speed)
-  ansible.builtin.copy:
+  ansible.posix.synchronize:
     src: "{{ playbook_dir }}/../command_center/"
     dest: "{{ buoy_root }}/command_center"
-    mode: "0644"
-    exclude:
-      - node_modules/
+    mode: push
+    rsync_opts:
+      - --exclude=node_modules
 
 - name: Install command center dependencies with pnpm (requires network; skip when offline_first_boot)
   ansible.builtin.command:
