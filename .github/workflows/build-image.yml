@@ -95,8 +95,16 @@ jobs:
       - name: Create Release
         run: |
           FILES="build/buoy_build.img.xz build/buoy.rpi-imager-manifest build/install.sh"
-          [ -f build/buoy_build_llm.img.xz ] && FILES="$FILES build/buoy_build_llm.img.xz"
-          [ -f build/buoy_llm.rpi-imager-manifest ] && FILES="$FILES build/buoy_llm.rpi-imager-manifest"
+          # GitHub release assets are limited to 2GB; skip LLM image if over limit
+          if [ -f build/buoy_build_llm.img.xz ]; then
+            SIZE=$(stat -c%s build/buoy_build_llm.img.xz)
+            if [ "$SIZE" -lt 2147483648 ]; then
+              FILES="$FILES build/buoy_build_llm.img.xz"
+              [ -f build/buoy_llm.rpi-imager-manifest ] && FILES="$FILES build/buoy_llm.rpi-imager-manifest"
+            else
+              echo "::warning::Skipping buoy_build_llm.img.xz ($(numfmt --to=iec-i $SIZE 2>/dev/null || echo ${SIZE} bytes) > 2GB). Build LLM image locally."
+            fi
+          fi
           gh release create "${{ github.event.inputs.version }}" \
             --title "Buoy ${{ github.event.inputs.version }}" \
             --generate-notes \
