@@ -61,6 +61,7 @@ curl -sSL https://github.com/wilfriedE/buoy/releases/download/v1.0.0/install.sh 
 **Options:**
 - `--no-wifi` – **Default.** No WiFi AP—your machine stays on your existing network. Other devices on the same WiFi or LAN reach the hub at your machine's IP. No "Buoy WiFi" to join.
 - `--wifi` – Enable WiFi AP so the Buoy creates its own network (e.g. for field use). Connect to the Buoy network and open `http://buoy.buoy` or `http://10.3.141.1`.
+- `--llm` – Enable LLM variant (Ollama, Whisper, ROS Action). Requires 8 GB+ RAM.
 
 **With WiFi AP:**
 ```bash
@@ -131,10 +132,6 @@ git clone https://github.com/wilfriedE/buoy.git
 cd buoy/ansible
 ansible-playbook -i localhost, -c local playbook.yml
 ```
-
-### Planned features
-
-Implementation plans for future features live in [docs/plans/](docs/plans/). Each plan includes context, architecture, step-by-step build instructions, and codebase patterns to follow. Example: [NetworkTables (FRC) bridge](docs/plans/networktables-ros-bridge.md).
 
 ### Quick links
 

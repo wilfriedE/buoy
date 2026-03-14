@@ -12,12 +12,14 @@ BUOY_ROOT="${BUOY_ROOT:-/opt/buoy}"
 REPO_URL="${REPO_URL:-https://github.com/wilfriedE/buoy.git}"
 BUOY_VERSION="${BUOY_VERSION:-main}"
 WIFI_AP_ENABLE=false
+LLM_ENABLE=false
 
 for arg in "$@"; do
   case "$arg" in
     --wifi)    WIFI_AP_ENABLE=true ;;
     --no-wifi) WIFI_AP_ENABLE=false ;;
-    *)         echo "Unknown option: $arg. Use --wifi or --no-wifi."; exit 1 ;;
+    --llm)     LLM_ENABLE=true ;;
+    *)         echo "Unknown option: $arg. Use --wifi, --no-wifi, and/or --llm."; exit 1 ;;
   esac
 done
 
@@ -62,6 +64,7 @@ esac
 echo "[*] Detected: $PRETTY_NAME (using $PKG_MGR)"
 echo "[*] Version: $BUOY_VERSION"
 echo "[*] WiFi AP: $WIFI_AP_ENABLE"
+echo "[*] LLM: $LLM_ENABLE"
 echo ""
 
 # Install prerequisites (Ansible will install Docker via its role)
@@ -97,7 +100,8 @@ echo "[*] Running Ansible playbook..."
 cd "$BUOY_ROOT/ansible"
 ansible-playbook -i localhost, -c local playbook.yml \
   -e "offline_first_boot=false" \
-  -e "wifi_ap_enable=$WIFI_AP_ENABLE"
+  -e "wifi_ap_enable=$WIFI_AP_ENABLE" \
+  -e "llm_enable=$LLM_ENABLE"
 
 # Mark as configured
 touch /etc/buoy_configured 2>/dev/null || true
@@ -111,3 +115,4 @@ else
   echo "Web portal: http://localhost (on this machine) or http://${BUOY_IP:-<host-ip>} (from other devices on the same network)"
   echo "No Buoy WiFi—devices use your existing network. Rosbridge: ws://${BUOY_IP:-<host-ip>}:9090"
 fi
+[ "$LLM_ENABLE" = true ] && echo "LLM: Ollama, Whisper, and LLM ROS node enabled. First run may take a few minutes to pull images."
