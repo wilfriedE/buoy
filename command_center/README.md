@@ -1,10 +1,10 @@
-# Buoy Command Center
+# Buoy Web portal
 
-Web dashboard for the Buoy ROS 2 hub.
+Web dashboard for the Buoy ROS 2 hub appliance.
 
 ## Local development
 
-Run the command center locally with **live reload** so UI changes appear instantly in the browser.
+Run the web portal locally with **live reload** so UI changes appear instantly in the browser.
 
 ### Prerequisites
 

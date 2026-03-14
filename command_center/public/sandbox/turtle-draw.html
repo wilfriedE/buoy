@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turtle Draw – Buoy Sandbox</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+  <script src="/vendor/roslib.min.js"></script>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Turtle Draw</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Connecting…</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <p class="text-slate-300 mb-6">Control a turtle with Twist messages. Select a controller topic (e.g. from <a href="/gamepad.html" class="text-sky-300 hover:underline">Gamepad & Joysticks</a>) to drive the turtle. The turtle draws a trail as it moves.</p>
+
+    <div id="ros-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+      ROS (rosbridge) not connected. Connect to the buoy WiFi.
+    </div>
+
+    <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-6 space-y-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <div>
+          <label class="block text-sm text-slate-300 mb-1">Controller (Twist topic)</label>
+          <select id="topic-select" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 min-w-[200px]">
+            <option value="">— Select topic —</option>
+          </select>
+        </div>
+        <button id="refresh-topics" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm">
+          Refresh list
+        </button>
+        <button id="clear-btn" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm">
+          Clear canvas
+        </button>
+      </div>
+      <p id="no-twist-topics" class="hidden text-sm text-amber-300">No Twist topics found. <a href="/gamepad.html" class="text-sky-300 hover:underline">Register a gamepad</a> first.</p>
+      <div class="rounded-lg overflow-hidden border border-slate-700/50 bg-slate-900">
+        <canvas id="canvas" width="640" height="480" class="w-full max-w-full block cursor-crosshair"></canvas>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const wsUrl = 'ws://' + window.location.hostname + ':9090';
+      const ros = new ROSLIB.Ros({ url: wsUrl });
+      const statusEl = document.getElementById('status');
+      const rosUnavailableEl = document.getElementById('ros-unavailable');
+      const topicSelect = document.getElementById('topic-select');
+      const refreshBtn = document.getElementById('refresh-topics');
+      const clearBtn = document.getElementById('clear-btn');
+      const noTwistEl = document.getElementById('no-twist-topics');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const TWIST_TYPE = 'geometry_msgs/msg/Twist';
+      const TURTLE_COLOR = '#38bdf8';
+      const TRAIL_COLOR = 'rgba(56, 189, 248, 0.6)';
+      const BG_COLOR = '#0f172a';
+      const DT = 1/60;
+
+      let subscriber = null;
+      let linearX = 0, angularZ = 0;
+      let x = 320, y = 240, theta = 0;
+      let prevX = 320, prevY = 240;
+      let lastTime = 0;
+      let animId = null;
+
+      function setStatus(cls, text) {
+        statusEl.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
+        statusEl.textContent = text;
+      }
+
+      function callService(name, srvType, request) {
+        return new Promise(function(resolve, reject) {
+          const svc = new ROSLIB.Service({ ros: ros, name: name, serviceType: srvType });
+          const req = new ROSLIB.ServiceRequest(request || {});
+          svc.callService(req, resolve, reject);
+        });
+      }
+
+      async function loadTwistTopics() {
+        try {
+          const res = await callService('/rosapi/topics', 'rosapi_msgs/srv/Topics', {});
+          const topics = res.topics || [];
+          const types = res.types || [];
+          const twistTopics = topics.filter(function(t, i) { return types[i] === TWIST_TYPE; }).sort();
+          return twistTopics;
+        } catch (e) {
+          console.error('Failed to load topics', e);
+          return [];
+        }
+      }
+
+      function populateTopicSelect(topics) {
+        const current = topicSelect.value;
+        topicSelect.innerHTML = '<option value="">— Select topic —</option>';
+        topics.forEach(function(t) {
+          const opt = document.createElement('option');
+          opt.value = t;
+          opt.textContent = t;
+          if (t === current) opt.selected = true;
+          topicSelect.appendChild(opt);
+        });
+        noTwistEl.classList.toggle('hidden', topics.length > 0);
+      }
+
+      async function refreshTopics() {
+        const topics = await loadTwistTopics();
+        populateTopicSelect(topics);
+      }
+
+      function subscribe(topic) {
+        if (subscriber) {
+          subscriber.unsubscribe();
+          subscriber = null;
+        }
+        if (!topic) return;
+
+        subscriber = new ROSLIB.Topic({ ros: ros, name: topic, messageType: TWIST_TYPE });
+        subscriber.subscribe(function(msg) {
+          linearX = msg.linear && typeof msg.linear.x === 'number' ? msg.linear.x : 0;
+          angularZ = msg.angular && typeof msg.angular.z === 'number' ? msg.angular.z : 0;
+        });
+      }
+
+      function drawTurtle() {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(theta);
+        ctx.fillStyle = TURTLE_COLOR;
+        ctx.beginPath();
+        ctx.moveTo(12, 0);
+        ctx.lineTo(-8, 8);
+        ctx.lineTo(-4, 0);
+        ctx.lineTo(-8, -8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#0ea5e9';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function step(timestamp) {
+        const dt = lastTime ? Math.min((timestamp - lastTime) / 1000, 0.1) : DT;
+        lastTime = timestamp;
+
+        prevX = x;
+        prevY = y;
+        theta += angularZ * dt;
+        x += Math.cos(theta) * linearX * 80 * dt;
+        y += Math.sin(theta) * linearX * 80 * dt;
+
+        x = Math.max(10, Math.min(canvas.width - 10, x));
+        y = Math.max(10, Math.min(canvas.height - 10, y));
+
+        if (Math.abs(x - prevX) > 0.5 || Math.abs(y - prevY) > 0.5) {
+          ctx.strokeStyle = TRAIL_COLOR;
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(prevX, prevY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
+
+        drawTurtle();
+        animId = requestAnimationFrame(step);
+      }
+
+      function clearCanvas() {
+        ctx.fillStyle = BG_COLOR;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        x = prevX = canvas.width / 2;
+        y = prevY = canvas.height / 2;
+        theta = 0;
+        linearX = 0;
+        angularZ = 0;
+        drawTurtle();
+      }
+
+      function initCanvas() {
+        ctx.fillStyle = BG_COLOR;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        x = prevX = canvas.width / 2;
+        y = prevY = canvas.height / 2;
+        theta = 0;
+        drawTurtle();
+        animId = requestAnimationFrame(step);
+      }
+
+      topicSelect.addEventListener('change', function() {
+        const topic = topicSelect.value;
+        subscribe(topic);
+      });
+
+      refreshBtn.addEventListener('click', function() {
+        refreshTopics();
+      });
+
+      clearBtn.addEventListener('click', clearCanvas);
+
+      ros.on('connection', function() {
+        setStatus('bg-emerald-500/20 text-emerald-300', 'Connected');
+        rosUnavailableEl.classList.add('hidden');
+        refreshTopics();
+        initCanvas();
+      });
+
+      ros.on('error', function() {
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
+        rosUnavailableEl.classList.remove('hidden');
+      });
+
+      ros.on('close', function() {
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
+        rosUnavailableEl.classList.remove('hidden');
+      });
+    })();
+  </script>
+</body>
+</html>

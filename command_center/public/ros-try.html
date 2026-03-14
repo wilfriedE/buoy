@@ -8,52 +8,73 @@
   <link rel="stylesheet" href="/dist/tailwind.css" />
   <script src="/vendor/roslib.min.js"></script>
 </head>
-<body class="min-h-screen text-slate-200">
+<body class="min-h-screen bg-slate-900 text-slate-200">
   <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <a href="/" class="flex items-center gap-3">
           <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
           <span class="text-lg font-semibold text-white">Listen & Publish</span>
         </a>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
-        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
-        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Connecting…</span>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Connecting…</span>
       </div>
     </div>
   </nav>
 
   <main class="max-w-4xl mx-auto px-4 py-8">
-    <p class="text-slate-400 mb-6">Subscribe to messages and publish to topics. All devices on the buoy's WiFi share the same ROS network.</p>
+    <p class="text-slate-300 mb-6">Subscribe to messages and publish to topics. All devices on the buoy's WiFi share the same ROS network.</p>
 
     <div class="space-y-6">
-      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
-        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">Listen (subscribe)</h2>
+      <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">Listen (subscribe)</h2>
         <div class="mb-3">
-          <label class="block text-sm text-slate-400 mb-1">Topic</label>
+          <label class="block text-sm text-slate-300 mb-1">Topic</label>
           <input id="listen-topic" type="text" value="/chatter" placeholder="/chatter"
-            class="w-full max-w-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50">
+            class="w-full max-w-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50">
         </div>
         <div id="messages" class="max-h-48 overflow-y-auto font-mono text-sm rounded-lg bg-slate-900/50 p-3 border border-slate-700/50">Waiting for messages…</div>
       </div>
 
-      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
-        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">Publish</h2>
+      <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">Publish</h2>
         <div class="mb-3">
-          <label class="block text-sm text-slate-400 mb-1">Topic</label>
+          <label class="block text-sm text-slate-300 mb-1">Topic</label>
           <input id="pub-topic" type="text" value="/chatter" placeholder="/chatter"
-            class="w-full max-w-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50">
+            class="w-full max-w-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50">
         </div>
         <div class="flex gap-2">
           <input id="pub-input" type="text" placeholder="Type a message…" maxlength="500"
-            class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50">
+            class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50">
           <button id="pub-btn" disabled class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
             Publish
           </button>
         </div>
-        <div id="pub-error" class="mt-2 text-sm text-red-400 hidden"></div>
+        <div id="pub-error" class="mt-2 text-sm text-red-300 hidden"></div>
       </div>
     </div>
   </main>
@@ -85,7 +106,7 @@
         const text = typeof data === 'string' ? data : (data.data !== undefined ? data.data : JSON.stringify(data));
         const div = document.createElement('div');
         div.textContent = text;
-        msg.innerHTML = '<span class="text-slate-500 text-xs mr-2">' + time + '</span>' + div.innerHTML;
+        msg.innerHTML = '<span class="text-slate-300 text-xs mr-2">' + time + '</span>' + div.innerHTML;
         messagesEl.appendChild(msg);
         messagesEl.scrollTop = messagesEl.scrollHeight;
         if (messagesEl.querySelectorAll('.py-2').length > 100) {
@@ -109,7 +130,7 @@
       }
 
       ros.on('connection', function() {
-        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+        setStatus('bg-emerald-500/20 text-emerald-300', 'Connected');
         pubBtn.disabled = false;
         pubErrorEl.classList.add('hidden');
         subscribe();
@@ -117,12 +138,12 @@
       });
 
       ros.on('error', function() {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
         pubBtn.disabled = true;
       });
 
       ros.on('close', function() {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
         pubBtn.disabled = true;
       });
 

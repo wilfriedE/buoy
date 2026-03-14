@@ -33,7 +33,7 @@
     iptables -C INPUT -i {{ wifi_interface }} -p udp -d 239.255.0.1 -j ACCEPT 2>/dev/null || \
     iptables -I INPUT -i {{ wifi_interface }} -p udp -d 239.255.0.1 -j ACCEPT
   changed_when: false
-  when: wifi_interface is defined
+  when: wifi_interface is defined and wifi_ap_enable | default(true) | bool
   ignore_errors: true
 
 - name: Allow DDS UDP port range (Fast DDS) on WiFi interface
@@ -41,7 +41,7 @@
     iptables -C INPUT -i {{ wifi_interface }} -p udp --dport 7400:7500 -j ACCEPT 2>/dev/null || \
     iptables -I INPUT -i {{ wifi_interface }} -p udp --dport 7400:7500 -j ACCEPT
   changed_when: false
-  when: wifi_interface is defined
+  when: wifi_interface is defined and wifi_ap_enable | default(true) | bool
   ignore_errors: true
 
 - name: Allow discovery server port on WiFi interface
@@ -49,7 +49,7 @@
     iptables -C INPUT -i {{ wifi_interface }} -p tcp --dport {{ ros_discovery_server_port }} -j ACCEPT 2>/dev/null || \
     iptables -I INPUT -i {{ wifi_interface }} -p tcp --dport {{ ros_discovery_server_port }} -j ACCEPT
   changed_when: false
-  when: wifi_interface is defined and use_discovery_server | default(false) | bool
+  when: wifi_interface is defined and wifi_ap_enable | default(true) | bool and use_discovery_server | default(false) | bool
   ignore_errors: true
 
 - name: Check for pre-saved Docker images tar (offline)
@@ -71,6 +71,8 @@
   ansible.builtin.command:
     cmd: docker compose build
     chdir: "{{ buoy_root }}/docker"
+  environment:
+    DOCKER_PLATFORM: "{{ docker_platform }}"
   when:
     - docker_image_build | default(false) | bool
     - not docker_image_prebuilt | default(false) | bool
@@ -81,6 +83,7 @@
     chdir: "{{ buoy_root }}/docker"
   environment:
     ROS_DOMAIN_ID: "{{ ros_domain_id }}"
+    DOCKER_PLATFORM: "{{ docker_platform }}"
   register: compose_up
   changed_when: "'Creating' in compose_up.stdout or 'Starting' in compose_up.stdout or 'Building' in compose_up.stdout"
   failed_when: compose_up.rc != 0
@@ -94,6 +97,7 @@
     chdir: "{{ buoy_root }}/docker"
   environment:
     ROS_DOMAIN_ID: "{{ ros_domain_id }}"
+    DOCKER_PLATFORM: "{{ docker_platform }}"
   register: compose_up_offline
   changed_when: "'Creating' in compose_up_offline.stdout or 'Starting' in compose_up_offline.stdout"
   failed_when: compose_up_offline.rc != 0

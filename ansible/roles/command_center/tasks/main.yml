@@ -1,10 +1,20 @@
 ---
-- name: Install Node.js (requires network)
+- name: Install Node.js (Debian/Ubuntu)
   ansible.builtin.apt:
     name: nodejs
     state: present
     update_cache: true
-  when: not offline_first_boot | default(false) | bool
+  when:
+    - not offline_first_boot | default(false) | bool
+    - ansible_os_family == 'Debian'
+
+- name: Install Node.js (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name: nodejs
+    state: present
+  when:
+    - not offline_first_boot | default(false) | bool
+    - ansible_os_family == 'RedHat'
 
 - name: Enable pnpm via corepack (bundled with Node.js)
   ansible.builtin.command:
@@ -20,11 +30,13 @@
 
 - name: Install npm and pnpm (fallback if corepack unavailable)
   block:
-    - name: Install npm
+    - name: Install npm (Debian/Ubuntu)
       ansible.builtin.apt:
         name: npm
         state: present
-      when: not offline_first_boot | default(false) | bool
+      when:
+        - not offline_first_boot | default(false) | bool
+        - ansible_os_family == 'Debian'
 
     - name: Install pnpm via npm
       ansible.builtin.command:

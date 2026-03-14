@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Dark theme base – ensures consistent background for contrast */
+@layer base {
+  html, body {
+    @apply bg-slate-900;
+  }
+}
+
+/* Nav dropdowns: hover + focus-within for click/touch support */
+@layer components {
+  .nav-dropdown:hover .nav-dropdown-menu,
+  .nav-dropdown:focus-within .nav-dropdown-menu {
+    @apply block;
+  }
+}

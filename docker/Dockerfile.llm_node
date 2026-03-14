@@ -1,0 +1,19 @@
+# Buoy LLM ROS 2 Action server – proper ament workspace (ARM64)
+FROM ros:jazzy-ros-base
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-colcon-common-extensions \
+    ros-jazzy-rosidl-default-generators \
+    ros-jazzy-ament-cmake \
+    ros-jazzy-rclpy \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/llm_ws
+COPY llm_ws/src /app/llm_ws/src
+
+RUN . /opt/ros/jazzy/setup.sh && colcon build --symlink-install
+
+COPY llm_node_launch.sh /app/
+RUN chmod +x /app/llm_node_launch.sh
+
+ENTRYPOINT ["/app/llm_node_launch.sh"]

@@ -9,28 +9,47 @@
   <script src="/vendor/roslib.min.js"></script>
   <script src="/vendor/vis-network.min.js"></script>
 </head>
-<body class="min-h-screen text-slate-200">
+<body class="min-h-screen bg-slate-900 text-slate-200">
   <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
-    <div class="px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <a href="/" class="flex items-center gap-3">
           <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
           <span class="text-lg font-semibold text-white">Topic Graph</span>
         </a>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
-        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
-        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Disconnected</span>
-        <button id="refresh" disabled class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-          Refresh
-        </button>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-sky-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Disconnected</span>
+        <button id="refresh" disabled class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">Refresh</button>
       </div>
     </div>
   </nav>
 
   <div id="graph" class="w-full" style="height: calc(100vh - 60px);"></div>
-  <div id="error" class="hidden p-4 text-red-400 bg-red-500/10 border-t border-red-500/20"></div>
+  <div id="error" class="hidden p-4 text-red-300 bg-red-500/10 border-t border-red-500/20"></div>
 
   <script>
     (function() {
@@ -58,19 +77,19 @@
       const ros = new ROSLIB.Ros({ url: wsUrl });
 
       ros.on('connection', function() {
-        setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+        setStatus('bg-emerald-500/20 text-emerald-300', 'Connected');
         refreshBtn.disabled = false;
         hideError();
         loadGraph();
       });
 
       ros.on('error', function(err) {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
         showError('Cannot connect to rosbridge at ' + wsUrl + '. Is the rosbridge container running?');
       });
 
       ros.on('close', function() {
-        setStatus('bg-red-500/20 text-red-400', 'Disconnected');
+        setStatus('bg-red-500/20 text-red-300', 'Disconnected');
       });
 
       function callService(name, srvType, request) {
@@ -82,7 +101,7 @@
       }
 
       async function loadGraph() {
-        setStatus('bg-amber-500/20 text-amber-400', 'Loading…');
+        setStatus('bg-amber-500/20 text-amber-300', 'Loading…');
         hideError();
         try {
           const [topicsRes, nodesRes] = await Promise.all([
@@ -118,7 +137,7 @@
 
           const nodes = Array.from(allNodes);
           if (nodes.length === 0 && topics.length === 0) {
-            setStatus('bg-emerald-500/20 text-emerald-400', 'Connected (no nodes)');
+            setStatus('bg-emerald-500/20 text-emerald-300', 'Connected (no nodes)');
             clearGraph();
             renderEmpty();
             return;
@@ -179,16 +198,16 @@
           };
 
           new vis.Network(graphEl, data, options);
-          setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+          setStatus('bg-emerald-500/20 text-emerald-300', 'Connected');
         } catch (err) {
-          setStatus('bg-emerald-500/20 text-emerald-400', 'Connected');
+          setStatus('bg-emerald-500/20 text-emerald-300', 'Connected');
           showError('Failed to load graph: ' + (err.message || err));
           console.error(err);
         }
       }
 
       function renderEmpty() {
-        graphEl.innerHTML = '<div class="flex items-center justify-center h-full text-slate-500"><p>No ROS nodes or topics found. Start some nodes with <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ROS_DOMAIN_ID=0</code> to see them here.</p></div>';
+        graphEl.innerHTML = '<div class="flex items-center justify-center h-full text-slate-300"><p>No ROS nodes or topics found. Start some nodes with <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">ROS_DOMAIN_ID=0</code> to see them here.</p></div>';
       }
 
       function clearGraph() {

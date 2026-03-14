@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sandbox – Buoy</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Sandbox</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-sky-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold text-white mb-2">Sandbox – Sample projects</h1>
+    <p class="text-slate-300 mb-8">Try out sample projects that connect to the buoy's ROS 2 network and services.</p>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Chat with AI -->
+      <a href="/sandbox/chat-ai.html" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-sky-500/50 transition">
+        <h2 class="text-lg font-semibold text-white mb-2">Chat with AI</h2>
+        <p class="text-sm text-slate-300">Chat with the LLM (Qwen) via ROS 2 Action <code class="bg-slate-700 px-1 rounded text-xs">/llm/chat</code> with <code class="bg-slate-700 px-1 rounded text-xs">modality: "text"</code>. Falls back to HTTP.</p>
+      </a>
+
+      <!-- AI Image View -->
+      <a href="/sandbox/image-view-ai.html" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-sky-500/50 transition">
+        <h2 class="text-lg font-semibold text-white mb-2">AI Image View</h2>
+        <p class="text-sm text-slate-300">Upload an image and ask the vision model (Moondream) to describe it. Uses <code class="bg-slate-700 px-1 rounded text-xs">modality: "image"</code>.</p>
+      </a>
+
+      <!-- Turtle Draw -->
+      <a href="/sandbox/turtle-draw.html" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-sky-500/50 transition">
+        <h2 class="text-lg font-semibold text-white mb-2">Turtle Draw</h2>
+        <p class="text-sm text-slate-300">Control a turtle with Twist messages. Select a controller topic (from Gamepad & Joysticks) to drive and draw.</p>
+      </a>
+
+      <!-- Live Coding -->
+      <a href="/sandbox/live-coding.html" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-sky-500/50 transition">
+        <h2 class="text-lg font-semibold text-white mb-2">Live Coding</h2>
+        <p class="text-sm text-slate-300">Write and run ROS 2 JavaScript in the browser. Publish, subscribe, and experiment with roslib.</p>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

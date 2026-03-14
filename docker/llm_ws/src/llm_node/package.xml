@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>llm_node</name>
+  <version>0.1.0</version>
+  <description>Buoy LLM ROS 2 Action server – bridges Ollama and Whisper to ROS</description>
+  <maintainer email="buoy@example.com">Buoy</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>llm_msgs</depend>
+  <depend>std_msgs</depend>
+</package>

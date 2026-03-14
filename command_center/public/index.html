@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buoy – Command Center</title>
+  <title>Buoy – Web portal</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <link rel="stylesheet" href="/dist/tailwind.css" />
   <script src="/vendor/roslib.min.js"></script>
 </head>
-<body class="min-h-screen text-slate-200">
+<body class="min-h-screen bg-slate-900 text-slate-200">
   <!-- Nav -->
   <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
     <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
@@ -17,16 +17,39 @@
           <img src="/logo.svg" alt="Buoy" class="w-10 h-10" />
           <div>
             <h1 class="text-lg font-semibold text-white">Buoy</h1>
-            <p class="text-xs text-sky-400">Command Center</p>
+            <p class="text-xs text-sky-300">Web portal</p>
           </div>
         </a>
       </div>
-      <div class="flex items-center gap-4">
-        <a href="/" class="nav-link text-sm text-slate-400">Dashboard</a>
-        <a href="/ros-try.html" class="nav-link text-sm text-slate-400">Listen & Publish</a>
-        <a href="/ros-graph.html" class="nav-link text-sm text-slate-400">Topic Graph</a>
-        <a href="/docs/ros-hub.md" class="nav-link text-sm text-slate-400">Docs</a>
-        <span id="ros-status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400">Checking…</span>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-400 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-400 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">
+            ROS <span class="text-xs opacity-75">▾</span>
+          </button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-400 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-400 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">
+            Docs <span class="text-xs opacity-75">▾</span>
+          </button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="ros-status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Checking…</span>
       </div>
     </div>
   </nav>
@@ -34,54 +57,120 @@
   <main class="max-w-6xl mx-auto px-4 py-8">
     <!-- Hero -->
     <div class="mb-8">
-      <p class="text-slate-400">Hub for ROS 2 devices on this network. Connect to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">buoy.buoy</code> for the hub.</p>
+      <p class="text-slate-300">Hub for ROS 2 devices on this network. Connect to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">buoy.buoy</code> or <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">10.3.141.1</code> for the hub.</p>
     </div>
 
-    <!-- Dashboard grid -->
-    <div class="grid md:grid-cols-2 gap-6 mb-8">
-      <!-- Connected devices -->
-      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
-        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">Connected devices</h2>
+    <!-- Section 1 – Status -->
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">Connected devices</h2>
         <div id="devices" class="space-y-2 min-h-[80px] text-slate-300">Loading…</div>
       </div>
+      <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">LLM</h2>
+        <div id="llm-status" class="flex items-center gap-2 text-slate-300">
+          <span id="llm-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500/50"></span>
+          <span id="llm-text">Checking…</span>
+        </div>
+        <p class="text-xs text-slate-300 mt-2">Ollama + Whisper + ROS Action at <code class="bg-slate-800 px-1 rounded">/llm/chat</code>. <a href="/docs/llm-buoy.md" class="text-sky-300 hover:underline">Docs</a></p>
+      </div>
+      <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-6">
+        <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">ROS</h2>
+        <div class="flex items-center gap-2 text-slate-300">
+          <span id="ros-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500/50"></span>
+          <span id="ros-status-text">Checking…</span>
+        </div>
+        <p class="text-xs text-slate-300 mt-2">rosbridge at <code class="bg-slate-800 px-1 rounded">ws://buoy.buoy:9090</code> or <code class="bg-slate-800 px-1 rounded">ws://10.3.141.1:9090</code></p>
+      </div>
+    </div>
 
-      <!-- Quick actions -->
-      <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
-        <h2 class="text-sm font-semibold text-sky-400 uppercase tracking-wider mb-4">ROS 2</h2>
-        <div class="space-y-3">
-          <a href="/ros-try.html" class="block p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
-            <span class="font-medium text-white">Listen & Publish</span>
-            <p class="text-sm text-slate-400 mt-0.5">Subscribe and publish to topics from your browser</p>
-          </a>
-          <a href="/ros-graph.html" class="block p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
-            <span class="font-medium text-white">Topic graph</span>
-            <p class="text-sm text-slate-400 mt-0.5">Visualize nodes and topics (vis-network)</p>
-          </a>
-          <div class="p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
-            <p class="text-sm text-slate-400">Use <a href="https://studio.foxglove.dev" target="_blank" rel="noopener" class="text-sky-400 hover:underline">Foxglove Studio</a> with <code class="text-xs">ws://buoy.buoy:9090</code></p>
-          </div>
+    <!-- Section 2 – ROS tools -->
+    <div class="mb-8">
+      <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">ROS tools</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="/ros-try.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Listen & Publish</span>
+          <p class="text-sm text-slate-300 mt-1">Subscribe and publish to topics</p>
+        </a>
+        <a href="/gamepad.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Gamepad & Joysticks</span>
+          <p class="text-sm text-slate-300 mt-1">Register controllers as Twist publishers</p>
+        </a>
+        <a href="/ros-graph.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Topic graph</span>
+          <p class="text-sm text-slate-300 mt-1">Visualize nodes and topics</p>
+        </a>
+        <div class="p-4 rounded-xl bg-slate-800 border border-slate-600/50">
+          <span class="font-medium text-white">Foxglove Studio</span>
+          <p class="text-sm text-slate-300 mt-1">Use <a href="https://studio.foxglove.dev" target="_blank" rel="noopener" class="text-sky-300 hover:underline">studio.foxglove.dev</a> with <code class="text-xs">ws://buoy.buoy:9090</code> or <code class="text-xs">ws://10.3.141.1:9090</code></p>
         </div>
       </div>
     </div>
 
-    <!-- WiFi settings (collapsible) -->
-    <details class="group bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+    <!-- Section 3 – Sandbox & demos -->
+    <div class="mb-8">
+      <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">Sandbox & demos</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="/sandbox/chat-ai.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Chat with AI</span>
+          <p class="text-sm text-slate-300 mt-1">LLM via ROS Action</p>
+        </a>
+        <a href="/sandbox/image-view-ai.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">AI Image View</span>
+          <p class="text-sm text-slate-300 mt-1">Image generation with ROS</p>
+        </a>
+        <a href="/sandbox/turtle-draw.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Turtle Draw</span>
+          <p class="text-sm text-slate-300 mt-1">Twist-controlled drawing</p>
+        </a>
+        <a href="/sandbox/live-coding.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Live Coding</span>
+          <p class="text-sm text-slate-300 mt-1">Live script execution</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section 4 – Documentation -->
+    <div class="mb-8">
+      <h2 class="text-sm font-semibold text-sky-200 uppercase tracking-wider mb-4">Documentation</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="/docs/connect-your-device.md" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Connect your device</span>
+          <p class="text-sm text-slate-300 mt-1">Device setup (Pi Zero, Linux, Mac, Windows)</p>
+        </a>
+        <a href="/docs/ros-hub.md" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">ROS hub</span>
+          <p class="text-sm text-slate-300 mt-1">Connecting and interacting with ROS devices</p>
+        </a>
+        <a href="/docs/install-linux.md" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">Install on Linux</span>
+          <p class="text-sm text-slate-300 mt-1">Headless install without flashing</p>
+        </a>
+        <a href="/docs/llm-buoy.md" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">LLM</span>
+          <p class="text-sm text-slate-300 mt-1">Ollama, Whisper, ROS Action</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section 5 – Settings (WiFi) -->
+    <details class="group bg-slate-800 rounded-xl border border-slate-600/50 overflow-hidden">
       <summary class="px-6 py-4 cursor-pointer list-none flex items-center justify-between hover:bg-slate-700/30">
-        <span class="text-sm font-semibold text-sky-400 uppercase tracking-wider">WiFi settings</span>
-        <span class="text-slate-500 group-open:rotate-180 transition">▼</span>
+        <span class="text-sm font-semibold text-sky-200 uppercase tracking-wider">WiFi settings</span>
+        <span class="text-slate-300 group-open:rotate-180 transition">▼</span>
       </summary>
       <div class="px-6 pb-6 pt-2 border-t border-slate-700/50">
-        <p class="text-sm text-slate-400 mb-4">Change the hub's WiFi SSID and password. Devices will need to reconnect after changes.</p>
+        <p class="text-sm text-slate-300 mb-4">Change the hub's WiFi SSID and password. Devices will need to reconnect after changes.</p>
         <form id="wifi-form" class="max-w-sm space-y-4">
           <div>
             <label for="wifi-ssid" class="block text-sm font-medium text-slate-300 mb-1">SSID</label>
             <input type="text" id="wifi-ssid" name="ssid" required placeholder="Network name" minlength="1" maxlength="32"
-              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
           </div>
           <div>
             <label for="wifi-passphrase" class="block text-sm font-medium text-slate-300 mb-1">Password</label>
             <input type="password" id="wifi-passphrase" name="passphrase" placeholder="Leave blank to keep current" maxlength="63"
-              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
           </div>
           <div class="flex items-center gap-3">
             <button type="submit" id="wifi-submit" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
@@ -119,56 +208,78 @@
         .then((data) => {
           if (data.error) throw new Error(data.error);
           status.textContent = 'Saved. Devices may need to reconnect.';
-          status.className = 'text-sm text-emerald-400';
+          status.className = 'text-sm text-emerald-300';
         })
         .catch((err) => {
           status.textContent = err.message || 'Failed to update';
-          status.className = 'text-sm text-red-400';
+          status.className = 'text-sm text-red-300';
         })
         .finally(() => { btn.disabled = false; });
     });
+
+    fetch('/api/llm/status')
+      .then(r => r.json())
+      .then(({ available }) => {
+        const dot = document.getElementById('llm-dot');
+        const text = document.getElementById('llm-text');
+        if (available) {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+          text.textContent = 'Available';
+        } else {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+          text.textContent = 'Not available';
+        }
+      })
+      .catch(() => {
+        document.getElementById('llm-dot').className = 'w-2.5 h-2.5 rounded-full bg-red-500/70';
+        document.getElementById('llm-text').textContent = 'Check failed';
+      });
 
     fetch('/api/devices')
       .then(r => r.json())
       .then(({ devices }) => {
         const el = document.getElementById('devices');
         if (devices.length === 0) {
-          el.innerHTML = '<p class="text-slate-500 text-sm">No DHCP leases. Devices appear when connected to this WiFi.</p>';
+          el.innerHTML = '<p class="text-slate-300 text-sm">No DHCP leases. Devices appear when connected to this WiFi.</p>';
           return;
         }
         el.innerHTML = devices.map(d =>
-          `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-slate-700/30 font-mono text-sm">${d.hostname || d.ip} — ${d.ip} <span class="text-slate-500 text-xs">${d.mac}</span></div>`
+          `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-slate-700/30 font-mono text-sm">${d.hostname || d.ip} — ${d.ip} <span class="text-slate-300 text-xs">${d.mac}</span></div>`
         ).join('');
       })
       .catch(() => {
-        document.getElementById('devices').innerHTML = '<p class="text-red-400 text-sm">Could not load devices.</p>';
+        document.getElementById('devices').innerHTML = '<p class="text-red-300 text-sm">Could not load devices.</p>';
       });
 
     (function() {
       const el = document.getElementById('ros-status');
+      const dotEl = document.getElementById('ros-status-dot');
+      const textEl = document.getElementById('ros-status-text');
       const wsUrl = 'ws://' + window.location.hostname + ':9090';
       const ros = new ROSLIB.Ros({ url: wsUrl });
 
-      function setStatus(cls, text) {
-        el.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
-        el.textContent = text;
+      function setStatus(cls, text, dotCls) {
+        if (el) { el.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls; el.textContent = text; }
+        if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full ' + (dotCls || 'bg-amber-500/50');
+        if (textEl) textEl.textContent = text;
       }
 
       ros.on('connection', function() {
-        setStatus('bg-emerald-500/20 text-emerald-400', 'ROS: Connected');
+        setStatus('bg-emerald-500/20 text-emerald-300', 'Connected', 'bg-emerald-500');
         const svc = new ROSLIB.Service({ ros: ros, name: '/rosapi/topics', serviceType: 'rosapi_msgs/srv/Topics' });
         svc.callService(new ROSLIB.ServiceRequest({}), function(res) {
           const n = (res.topics || []).length;
-          setStatus('bg-emerald-500/20 text-emerald-400', 'ROS: Connected (' + n + ' topic' + (n !== 1 ? 's' : '') + ')');
+          const t = n + ' topic' + (n !== 1 ? 's' : '');
+          setStatus('bg-emerald-500/20 text-emerald-300', 'Connected (' + t + ')', 'bg-emerald-500');
         });
       });
 
       ros.on('error', function() {
-        setStatus('bg-red-500/20 text-red-400', 'ROS: Not connected');
+        setStatus('bg-red-500/20 text-red-300', 'Not connected', 'bg-red-500/70');
       });
 
       ros.on('close', function() {
-        setStatus('bg-red-500/20 text-red-400', 'ROS: Not connected');
+        setStatus('bg-red-500/20 text-red-300', 'Not connected', 'bg-red-500/70');
       });
     })();
   </script>

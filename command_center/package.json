@@ -1,7 +1,7 @@
 {
   "name": "buoy-command-center",
   "version": "1.0.0",
-  "description": "Buoy dashboard – ROS topic graph and connected devices",
+  "description": "Buoy web dashboard – ROS topic graph, connected devices, and tools",
   "main": "server.js",
   "packageManager": "pnpm@9.14.2",
   "scripts": {

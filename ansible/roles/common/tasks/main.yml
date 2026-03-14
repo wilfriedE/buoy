@@ -10,7 +10,7 @@
   ansible.builtin.user:
     name: "{{ buoy_ssh_user }}"
     password: "{{ buoy_ssh_password | password_hash('sha512') }}"
-    groups: sudo
+    groups: "{{ 'wheel' if ansible_os_family == 'RedHat' else 'sudo' }}"
     append: true
     shell: /bin/bash
     create_home: true
@@ -23,11 +23,12 @@
     state: stopped
   ignore_errors: true
 
-- name: Remove pi user to reduce confusion
+- name: Remove pi user to reduce confusion (Raspberry Pi OS only)
   ansible.builtin.user:
     name: pi
     state: absent
     remove: true
+  when: ansible_os_family == 'Debian'
 
 - name: Set hostname
   ansible.builtin.hostname:
@@ -41,18 +42,36 @@
   register: hosts_edit
   changed_when: hosts_edit.changed
 
-- name: Update apt cache
+- name: Update apt cache (Debian/Ubuntu)
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 3600
-  when: not offline_first_boot | default(false) | bool
+  when:
+    - not offline_first_boot | default(false) | bool
+    - ansible_os_family == 'Debian'
 
-- name: Install common packages
+- name: Install common packages (Debian/Ubuntu)
   ansible.builtin.apt:
     name:
       - ca-certificates
       - curl
       - git
       - python3-pip
+      - vim
     state: present
-  when: not offline_first_boot | default(false) | bool
+  when:
+    - not offline_first_boot | default(false) | bool
+    - ansible_os_family == 'Debian'
+
+- name: Install common packages (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - python3-pip
+      - vim
+    state: present
+  when:
+    - not offline_first_boot | default(false) | bool
+    - ansible_os_family == 'RedHat'

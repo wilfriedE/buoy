@@ -17,7 +17,8 @@ BUILD_DIR="$REPO_ROOT/build"
 OUTPUT_MANIFEST="$BUILD_DIR/buoy.rpi-imager-manifest"
 FILE_URL=""
 
-# Parse --url
+# Parse --url and optional image path
+IMG_PATH=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --url)
@@ -25,16 +26,18 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     *)
+      IMG_PATH="$1"
+      shift
       break
       ;;
   esac
 done
 
 if [ -z "$FILE_URL" ]; then
-  if [ -n "$1" ]; then
-    IMG_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-  else
+  if [ -z "$IMG_PATH" ]; then
     IMG_PATH="$BUILD_DIR/buoy_build.img"
+  else
+    IMG_PATH="$(cd "$(dirname "$IMG_PATH")" && pwd)/$(basename "$IMG_PATH")"
   fi
   if [ ! -f "$IMG_PATH" ]; then
     echo "ERROR: Image not found: $IMG_PATH"
@@ -46,18 +49,22 @@ if [ -z "$FILE_URL" ]; then
   FILE_URL="file://${IMG_PATH}"
 fi
 
+# Use buoy_llm.rpi-imager-manifest when URL/path refers to LLM image
+if [[ "$FILE_URL" == *"buoy_build_llm"* ]] || [[ "$IMG_PATH" == *"buoy_build_llm"* ]]; then
+  OUTPUT_MANIFEST="$BUILD_DIR/buoy_llm.rpi-imager-manifest"
+fi
+
 mkdir -p "$(dirname "$OUTPUT_MANIFEST")"
 
 # init_format: cloudinit-rpi matches Raspberry Pi OS Trixie (our base)
 # This enables hostname, SSH customization. Do NOT configure WiFi in the gear—
 # Buoy uses wlan0 as AP; Pi Imager's WiFi would make it a client and conflict.
-# Our image is based on RPi OS, so these options may apply.
 cat > "$OUTPUT_MANIFEST" << EOF
 {
   "os_list": [
     {
       "name": "Buoy",
-      "description": "Headless ROS 2 hub with WiFi AP, .buoy DNS, command center",
+      "description": "ROS 2 hub appliance – WiFi AP, .buoy DNS, web portal",
       "url": "$FILE_URL",
       "init_format": "cloudinit-rpi",
       "devices": ["pi5-64bit", "pi4-64bit", "pi3-64bit"],

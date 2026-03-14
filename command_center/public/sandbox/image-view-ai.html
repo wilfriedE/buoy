@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Image View – Buoy Sandbox</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+  <script src="/vendor/roslib.min.js"></script>
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-200">
+  <nav class="border-b border-slate-600/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">AI Image View</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+            </div>
+          </div>
+        </div>
+        <span id="status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Checking…</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <p class="text-slate-300 mb-6">Upload an image and ask the vision model (Moondream) to describe or analyze it. Uses ROS 2 Action <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">/llm/chat</code> with <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">modality: "image"</code>, or HTTP when ROS is unavailable.</p>
+
+    <div id="llm-unavailable" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+      LLM not available. Check that Ollama is running and the proxy is configured.
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="space-y-4">
+        <div class="bg-slate-800 rounded-xl border border-slate-600/50 overflow-hidden">
+          <div id="drop-zone" class="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center cursor-pointer hover:border-sky-500/50 transition">
+            <p class="text-slate-300 mb-2">Drop an image here or click to select</p>
+            <input id="file-input" type="file" accept="image/*" capture="environment" class="hidden">
+            <img id="preview" class="max-h-64 mx-auto rounded hidden" alt="Preview" />
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <input id="prompt" type="text" placeholder="e.g. Describe this image in detail" value="Describe this image in detail."
+            class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500">
+          <button id="send" disabled class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+            Analyze
+          </button>
+        </div>
+      </div>
+      <div class="bg-slate-800 rounded-xl border border-slate-600/50 p-4">
+        <h3 class="text-sm font-medium text-slate-300 mb-2">AI Response</h3>
+        <div id="response" class="font-mono text-sm text-slate-200 min-h-[8rem]">Upload an image and click Analyze.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const wsUrl = 'ws://' + window.location.hostname + ':9090';
+      const statusEl = document.getElementById('status');
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+      const preview = document.getElementById('preview');
+      const promptEl = document.getElementById('prompt');
+      const sendBtn = document.getElementById('send');
+      const responseEl = document.getElementById('response');
+      const llmUnavailableEl = document.getElementById('llm-unavailable');
+
+      let imageBase64 = null;
+      let llmAvailable = false;
+
+      function setStatus(cls, text) {
+        statusEl.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
+        statusEl.textContent = text;
+      }
+
+      function setResponse(text, isError) {
+        responseEl.textContent = text || '';
+        responseEl.className = 'font-mono text-sm min-h-[8rem] ' + (isError ? 'text-red-300' : 'text-slate-200');
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result;
+            const base64 = dataUrl.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function handleFile(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        imageBase64 = null;
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('hidden');
+        dropZone.querySelector('p').classList.add('hidden');
+        fileToBase64(file).then(b64 => {
+          imageBase64 = b64;
+          sendBtn.disabled = !llmAvailable || !imageBase64;
+        });
+      }
+
+      dropZone.addEventListener('click', () => fileInput.click());
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-sky-500/50'); });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-sky-500/50'));
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-sky-500/50');
+        handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+      function sendViaHttp(prompt, base64, onResult) {
+        fetch('/api/llm/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'moondream',
+            messages: [{ role: 'user', content: prompt, images: [base64] }],
+            stream: false
+          })
+        })
+          .then(r => {
+            if (!r.ok) throw new Error(r.status === 503 ? 'LLM service not available' : 'Request failed');
+            return r.json();
+          })
+          .then(data => {
+            const content = (data.message && data.message.content) || data.response || '';
+            onResult(content, true);
+          })
+          .catch(err => onResult(err.message || 'HTTP request failed', false));
+      }
+
+      function sendViaRos(prompt, base64, onResult) {
+        const goalId = 'goal_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        let resolved = false;
+        let timeoutId;
+
+        function finish(content, success) {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(timeoutId);
+          onResult(content || '', success);
+          try { ws.close(); } catch (e) {}
+        }
+
+        const ws = new WebSocket(wsUrl);
+        ws.onopen = function() {
+          const handler = function(ev) {
+            try {
+              const msg = JSON.parse(ev.data);
+              if (msg.op === 'action_result' && msg.id === goalId) {
+                ws.removeEventListener('message', handler);
+                const v = msg.values || {};
+                const ok = msg.result === true || v.success === true;
+                const content = ok ? (v.content || '') : (v.error_message || 'Action failed');
+                finish(content, ok);
+              }
+            } catch (e) {}
+          };
+          ws.addEventListener('message', handler);
+          ws.send(JSON.stringify({
+            op: 'send_action_goal',
+            id: goalId,
+            action: '/llm/chat',
+            action_type: 'llm_msgs/action/Chat',
+            args: [{
+              prompt: prompt,
+              modality: 'image',
+              payload_base64: base64,
+              timeout_sec: 60,
+              requester_id: 'sandbox-image'
+            }],
+            feedback: false
+          }));
+          timeoutId = setTimeout(function() {
+            if (!resolved) finish('ROS action timeout', false);
+          }, 90000);
+        };
+        ws.onerror = function() { finish('ROS connection failed', false); };
+        ws.onclose = function() { if (!resolved) finish('ROS connection closed', false); };
+      }
+
+      function analyze() {
+        const prompt = promptEl.value.trim();
+        if (!prompt || !imageBase64) return;
+        sendBtn.disabled = true;
+        setResponse('Analyzing…', false);
+
+        function onResult(content, success) {
+          setResponse(content || '(no response)', !success);
+          sendBtn.disabled = false;
+        }
+
+        sendViaRos(prompt, imageBase64, function(content, success) {
+          if (!success) sendViaHttp(prompt, imageBase64, onResult);
+          else onResult(content, success);
+        });
+      }
+
+      sendBtn.addEventListener('click', analyze);
+      promptEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') analyze();
+      });
+
+      fetch('/api/llm/status')
+        .then(r => r.json())
+        .then(({ available }) => {
+          llmAvailable = !!available;
+          if (available) {
+            llmUnavailableEl.classList.add('hidden');
+            sendBtn.disabled = !imageBase64;
+            setStatus('bg-emerald-500/20 text-emerald-300', 'LLM available');
+          } else {
+            llmUnavailableEl.classList.remove('hidden');
+            sendBtn.disabled = true;
+            setStatus('bg-slate-500/20 text-slate-300', 'LLM not available');
+          }
+        })
+        .catch(() => {
+          llmUnavailableEl.classList.remove('hidden');
+          sendBtn.disabled = true;
+          setStatus('bg-red-500/20 text-red-300', 'Status check failed');
+        });
+    })();
+  </script>
+</body>
+</html>

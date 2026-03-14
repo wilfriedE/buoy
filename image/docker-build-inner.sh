@@ -15,8 +15,11 @@ apt-get -qq update
 apt-get -qq install -y qemu-user-static binfmt-support rsync parted e2fsprogs
 
 # Expand image so the root partition has room for Docker, ROS, npm, etc. (avoids "No space left on device")
-echo "[*] Expanding image by 4 GiB and growing root partition..."
-dd if=/dev/zero bs=1M count=4096 status=none >> "$IMG"
+# LLM variant needs ~12 GB extra (docker_images ~3.5G + ollama models ~4.5G + headroom); basic needs ~4 GB
+EXPAND_MB="${BUOY_LLM:+12288}"
+EXPAND_MB="${EXPAND_MB:-4096}"
+echo "[*] Expanding image by $((EXPAND_MB / 1024)) GiB and growing root partition..."
+dd if=/dev/zero bs=1M count="$EXPAND_MB" status=none >> "$IMG"
 LOOP_FULL=$(losetup -f --show "$IMG")
 parted -s "$LOOP_FULL" resizepart 2 100%
 losetup -d "$LOOP_FULL"
@@ -65,6 +68,11 @@ rsync -a --exclude=.git --exclude=.venv --exclude=node_modules --exclude=build -
 echo "[*] Setting offline_first_boot to false for build..."
 sed -i 's/offline_first_boot: true/offline_first_boot: false/' "$MNT/opt/buoy/ansible/group_vars/all.yml"
 
+if [ -n "${BUOY_LLM}" ]; then
+  echo "[*] LLM variant: enabling llm_enable in group_vars..."
+  sed -i 's/llm_enable: false/llm_enable: true/' "$MNT/opt/buoy/ansible/group_vars/all.yml"
+fi
+
 echo "[*] Running playbook (ROS image pre-built on host; skip compose start in chroot)..."
 # Install ansible-core only (full ansible pulls in many collections and fills the root partition)
 # docker_image_build=true: skips "Start ROS 2" tasks (no dockerd in chroot)
@@ -83,6 +91,12 @@ if [ ! -f /work/docker_images.tar ]; then
   exit 1
 fi
 cp -f /work/docker_images.tar "$MNT/opt/buoy/docker/docker_images.tar"
+
+if [ -n "${BUOY_LLM}" ] && [ -d /work/ollama ]; then
+  echo "[*] Copying Ollama models into image..."
+  mkdir -p "$MNT/opt/buoy/ollama"
+  rsync -a /work/ollama/ "$MNT/opt/buoy/ollama/"
+fi
 
 echo "[*] Setting offline_first_boot back to true..."
 sed -i 's/offline_first_boot: false/offline_first_boot: true/' "$MNT/opt/buoy/ansible/group_vars/all.yml"

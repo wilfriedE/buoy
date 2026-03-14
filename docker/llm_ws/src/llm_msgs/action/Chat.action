@@ -1,0 +1,15 @@
+# Goal – LLM chat request
+string prompt
+string modality       # text, image, audio
+string payload_base64 # base64-encoded image or audio for image/audio modality
+float32 timeout_sec
+string requester_id
+---
+# Result
+string content
+string error_message
+bool success
+---
+# Feedback – optional progress during long inference
+string status         # e.g. "transcribing", "generating"
+float32 progress      # 0.0–1.0
