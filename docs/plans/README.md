@@ -4,9 +4,7 @@ This folder contains detailed plans for features not yet implemented. Each plan 
 
 ## Plans
 
-| Plan | Description |
-|------|--------------|
-| [networktables-ros-bridge.md](networktables-ros-bridge.md) | NetworkTables connector for FRC robots – bridge FRC RoboRIO with the ROS network, multi-robot support, Features tab enablement |
+_No plans at the moment. Add new plans here as needed._
 
 ## How to use a plan
 
