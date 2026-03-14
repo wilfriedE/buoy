@@ -1,0 +1,2 @@
+# NT4 client for FRC NetworkTables (Robot is server; bridge is client)
+pyntcore>=2024.0.0

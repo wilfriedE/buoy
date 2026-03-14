@@ -31,10 +31,12 @@
             <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
               <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
               <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/networktables.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">NetworkTables (FRC)</a>
               <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
             </div>
           </div>
         </div>
+        <a href="/features.html" class="nav-link text-sm text-slate-400 hover:text-sky-300">Features</a>
         <a href="/sandbox/" class="nav-link text-sm text-slate-400 hover:text-sky-300">Sandbox</a>
         <div class="relative nav-dropdown">
           <button type="button" class="nav-link text-sm text-slate-400 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">
@@ -45,7 +47,8 @@
               <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
               <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
               <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
-              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">LLM</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">LLM</a>
+              <a href="/docs/networktables-frc.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">NetworkTables (FRC)</a>
             </div>
           </div>
         </div>
@@ -57,7 +60,7 @@
   <main class="max-w-6xl mx-auto px-4 py-8">
     <!-- Hero -->
     <div class="mb-8">
-      <p class="text-slate-300">Hub for ROS 2 devices on this network. Connect to <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">buoy.buoy</code> or <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">10.3.141.1</code> for the hub.</p>
+      <p class="text-slate-300">Hub for ROS 2 devices on this network. Connect to <code id="hub-host" class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">…</code> for the hub.</p>
     </div>
 
     <!-- Section 1 – Status -->
@@ -80,7 +83,7 @@
           <span id="ros-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500/50"></span>
           <span id="ros-status-text">Checking…</span>
         </div>
-        <p class="text-xs text-slate-300 mt-2">rosbridge at <code class="bg-slate-800 px-1 rounded">ws://buoy.buoy:9090</code> or <code class="bg-slate-800 px-1 rounded">ws://10.3.141.1:9090</code></p>
+        <p class="text-xs text-slate-300 mt-2">rosbridge at <code id="ros-ws-url" class="bg-slate-800 px-1 rounded">ws://…:9090</code></p>
       </div>
     </div>
 
@@ -96,13 +99,17 @@
           <span class="font-medium text-white">Gamepad & Joysticks</span>
           <p class="text-sm text-slate-300 mt-1">Register controllers as Twist publishers</p>
         </a>
+        <a href="/networktables.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
+          <span class="font-medium text-white">NetworkTables (FRC)</span>
+          <p class="text-sm text-slate-300 mt-1">Bridge to FRC robots via NetworkTables</p>
+        </a>
         <a href="/ros-graph.html" class="block p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/50 hover:border-sky-500/50 transition">
           <span class="font-medium text-white">Topic graph</span>
           <p class="text-sm text-slate-300 mt-1">Visualize nodes and topics</p>
         </a>
         <div class="p-4 rounded-xl bg-slate-800 border border-slate-600/50">
           <span class="font-medium text-white">Foxglove Studio</span>
-          <p class="text-sm text-slate-300 mt-1">Use <a href="https://studio.foxglove.dev" target="_blank" rel="noopener" class="text-sky-300 hover:underline">studio.foxglove.dev</a> with <code class="text-xs">ws://buoy.buoy:9090</code> or <code class="text-xs">ws://10.3.141.1:9090</code></p>
+          <p class="text-sm text-slate-300 mt-1">Use <a href="https://studio.foxglove.dev" target="_blank" rel="noopener" class="text-sky-300 hover:underline">studio.foxglove.dev</a> with <code id="foxglove-ws" class="text-xs">ws://…:9090</code></p>
         </div>
       </div>
     </div>
@@ -184,6 +191,17 @@
   </main>
 
   <script>
+    (function() {
+      const host = window.location.hostname;
+      const wsUrl = 'ws://' + host + ':9090';
+      const hubEl = document.getElementById('hub-host');
+      const rosEl = document.getElementById('ros-ws-url');
+      const foxEl = document.getElementById('foxglove-ws');
+      if (hubEl) hubEl.textContent = host;
+      if (rosEl) rosEl.textContent = wsUrl;
+      if (foxEl) foxEl.textContent = wsUrl;
+    })();
+
     fetch('/api/wifi').then(r => r.json()).then(({ ssid }) => {
       const el = document.getElementById('wifi-ssid');
       if (el) el.value = ssid || '';

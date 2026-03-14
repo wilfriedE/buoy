@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetworkTables (FRC) – Buoy</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">NetworkTables (FRC)</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/networktables.html" class="block px-4 py-2 text-sm text-sky-300 hover:bg-slate-700 hover:text-white">NetworkTables (FRC)</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/features.html" class="nav-link text-sm text-slate-300 hover:text-sky-300">Features</a>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">LLM</a>
+              <a href="/docs/networktables-frc.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">NetworkTables (FRC)</a>
+            </div>
+          </div>
+        </div>
+        <span id="bridge-status" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Checking…</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <p class="text-slate-300 mb-6">Register FRC robots for the NetworkTables bridge. Enable FRC in <a href="/features.html" class="text-sky-300 hover:underline">Features</a> first. Robots receive Twist commands on <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm">/cmd_vel/frc_&lt;id&gt;</code>.</p>
+
+    <div id="frc-disabled" class="hidden mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200">
+      FRC is disabled. Enable it in <a href="/features.html" class="text-sky-300 hover:underline">Features</a> to start the bridge.
+    </div>
+
+    <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-sky-300 uppercase tracking-wider">Registered robots</h2>
+        <button id="add-robot-btn" type="button" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium">
+          Add robot
+        </button>
+      </div>
+
+      <div id="robots-list" class="space-y-3">
+        <!-- robots rendered here -->
+      </div>
+
+      <div id="add-form" class="hidden pt-4 border-t border-slate-700/50 space-y-4">
+        <h3 class="text-sm font-medium text-slate-300">New robot</h3>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Label (display name)</label>
+            <input id="add-label" type="text" placeholder="e.g. Practice Bot" maxlength="64"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50">
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">ID (team number or slug)</label>
+            <input id="add-id" type="text" placeholder="e.g. team1234" maxlength="64"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 font-mono">
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Host (IP)</label>
+            <input id="add-host" type="text" placeholder="e.g. 10.12.34.2" maxlength="64"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-sky-500/50 font-mono">
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Port</label>
+            <input id="add-port" type="number" value="5800" min="1" max="65535"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white focus:ring-2 focus:ring-sky-500/50">
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button id="add-save-btn" type="button" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-medium">Save</button>
+          <button id="add-cancel-btn" type="button" class="px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-500 text-slate-200">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="status-msg" class="mt-4 text-sm hidden"></div>
+  </main>
+
+  <script>
+    (function() {
+      const robotsList = document.getElementById('robots-list');
+      const addForm = document.getElementById('add-form');
+      const addBtn = document.getElementById('add-robot-btn');
+      const addSaveBtn = document.getElementById('add-save-btn');
+      const addCancelBtn = document.getElementById('add-cancel-btn');
+      const bridgeStatus = document.getElementById('bridge-status');
+      const frcDisabled = document.getElementById('frc-disabled');
+      const statusMsg = document.getElementById('status-msg');
+
+      let robots = [];
+      let statusByRobot = {};
+
+      function setBridgeStatus(cls, text) {
+        bridgeStatus.className = 'text-xs font-medium px-2.5 py-1 rounded-full ' + cls;
+        bridgeStatus.textContent = text;
+      }
+
+      function showStatus(text, isError) {
+        statusMsg.textContent = text;
+        statusMsg.className = 'mt-4 text-sm ' + (isError ? 'text-red-300' : 'text-emerald-300');
+        statusMsg.classList.remove('hidden');
+      }
+
+      function loadConfig() {
+        fetch('/api/nt-bridge')
+          .then(r => r.json())
+          .then(data => {
+            robots = data.robots || [];
+            render();
+          })
+          .catch(() => { robots = []; render(); });
+      }
+
+      function loadStatus() {
+        fetch('/api/nt-bridge/status')
+          .then(r => r.json())
+          .then(data => {
+            frcDisabled.classList.add('hidden');
+            const list = data.robots || [];
+            statusByRobot = {};
+            list.forEach(r => { statusByRobot[r.id] = r.connected; });
+            render();
+            setBridgeStatus(list.length ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-500/20 text-slate-400', list.length ? 'Bridge running' : 'No robots');
+          })
+          .catch(() => {
+            frcDisabled.classList.remove('hidden');
+            setBridgeStatus('bg-red-500/20 text-red-300', 'Bridge not running');
+            statusByRobot = {};
+            render();
+          });
+      }
+
+      function render() {
+        if (robots.length === 0) {
+          robotsList.innerHTML = '<p class="text-slate-500 text-sm">No robots registered. Click Add robot to add one.</p>';
+          return;
+        }
+        robotsList.innerHTML = robots.map(r => {
+          const connected = statusByRobot[r.id];
+          const statusCls = connected === true ? 'bg-emerald-500/20 text-emerald-300' : connected === false ? 'bg-red-500/20 text-red-300' : 'bg-slate-500/20 text-slate-400';
+          const statusText = connected === true ? 'Connected' : connected === false ? 'Disconnected' : '…';
+          return `
+            <div class="flex items-center justify-between py-3 px-4 rounded-lg bg-slate-900/50 border border-slate-700/50" data-id="${escapeHtml(r.id)}">
+              <div class="flex items-center gap-3">
+                <span class="font-medium text-white">${escapeHtml(r.label || r.id)}</span>
+                <span class="text-sm font-mono text-slate-400">${escapeHtml(r.id)}</span>
+                <span class="text-sm text-slate-500">${escapeHtml(r.host || '')}:${r.port || 5800}</span>
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full ${statusCls}">${statusText}</span>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" class="edit-robot px-2 py-1 text-sm text-sky-300 hover:text-sky-200">Edit</button>
+                <button type="button" class="remove-robot px-2 py-1 text-sm text-red-300 hover:text-red-200">Remove</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        robotsList.querySelectorAll('.remove-robot').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const row = this.closest('[data-id]');
+            const id = row.dataset.id;
+            if (confirm('Remove robot ' + id + '?')) {
+              removeRobot(id);
+            }
+          });
+        });
+        robotsList.querySelectorAll('.edit-robot').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const row = this.closest('[data-id]');
+            const id = row.dataset.id;
+            const r = robots.find(x => x.id === id);
+            if (r) editRobot(r);
+          });
+        });
+      }
+
+      function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function saveRobots() {
+        fetch('/api/nt-bridge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ robots })
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data.error) throw new Error(data.error);
+            robots = data.robots || [];
+            render();
+            showStatus('Saved. Bridge will reload config.');
+            addForm.classList.add('hidden');
+          })
+          .catch(err => {
+            showStatus(err.message || 'Failed to save', true);
+          });
+      }
+
+      function removeRobot(id) {
+        robots = robots.filter(r => r.id !== id);
+        saveRobots();
+      }
+
+      function editRobot(r) {
+        const newLabel = prompt('Label:', r.label || r.id);
+        if (newLabel === null) return;
+        const newHost = prompt('Host (IP):', r.host || '');
+        if (newHost === null) return;
+        const newPort = prompt('Port:', String(r.port || 5800));
+        if (newPort === null) return;
+        const port = parseInt(newPort, 10);
+        const idx = robots.findIndex(x => x.id === r.id);
+        if (idx >= 0) {
+          robots[idx] = { ...robots[idx], label: newLabel.trim() || r.id, host: newHost.trim(), port: isNaN(port) ? 5800 : port };
+          saveRobots();
+        }
+      }
+
+      addBtn.addEventListener('click', function() {
+        addForm.classList.remove('hidden');
+        document.getElementById('add-label').value = '';
+        document.getElementById('add-id').value = '';
+        document.getElementById('add-host').value = '';
+        document.getElementById('add-port').value = '5800';
+      });
+
+      addCancelBtn.addEventListener('click', function() {
+        addForm.classList.add('hidden');
+      });
+
+      addSaveBtn.addEventListener('click', function() {
+        const label = document.getElementById('add-label').value.trim();
+        const id = document.getElementById('add-id').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_') || 'robot';
+        const host = document.getElementById('add-host').value.trim();
+        const port = parseInt(document.getElementById('add-port').value, 10) || 5800;
+        if (!host) {
+          showStatus('Host is required', true);
+          return;
+        }
+        if (robots.some(r => r.id === id)) {
+          showStatus('ID already exists', true);
+          return;
+        }
+        robots.push({ id, label: label || id, host, port });
+        saveRobots();
+      });
+
+      loadConfig();
+      loadStatus();
+      setInterval(loadStatus, 3000);
+    })();
+  </script>
+</body>
+</html>

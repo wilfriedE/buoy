@@ -1,0 +1,15 @@
+#!/bin/bash
+# Start nt_bridge if FRC is enabled in features.json.
+# Called by buoy-frc.service on boot.
+set -e
+FEATURES="{{ buoy_root }}/config/features.json"
+if [ -f "$FEATURES" ]; then
+  if grep -q '"frc"[[:space:]]*:[[:space:]]*true' "$FEATURES" 2>/dev/null; then
+    cd {{ buoy_root }}/docker
+    export ROS_DOMAIN_ID={{ ros_domain_id }}
+    export DOCKER_PLATFORM={{ docker_platform | default('linux/arm64') }}
+    export BUOY_ROOT={{ buoy_root }}
+    exec docker compose --profile frc up -d nt_bridge
+  fi
+fi
+exit 0

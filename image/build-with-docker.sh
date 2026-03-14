@@ -77,14 +77,14 @@ if [ -n "${BUOY_LLM}" ]; then
     -e BUOY_LLM=1 \
     -e "WORK_HOST=$BUILD_DIR" \
     docker:latest \
-    sh -c 'cd /repo/docker && docker compose build && docker compose --profile llm build && docker pull ollama/ollama:latest && docker run --rm -v "${WORK_HOST}/ollama:/root/.ollama" --entrypoint sh ollama/ollama:latest -c "ollama serve & count=0; until ollama list 2>/dev/null || [ \$count -ge 120 ]; do sleep 1; count=\$((count+1)); done; [ \$count -ge 120 ] && { echo \"Timeout waiting for Ollama\"; exit 1; }; ollama pull qwen2.5:1.5b && ollama pull moondream" && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest ollama/ollama:latest docker-whisper:latest docker-llm_node:latest'
+    sh -c 'cd /repo/docker && docker compose build && docker compose --profile llm build && docker compose --profile frc build && docker pull ollama/ollama:latest && docker run --rm -v "${WORK_HOST}/ollama:/root/.ollama" --entrypoint sh ollama/ollama:latest -c "ollama serve & count=0; until ollama list 2>/dev/null || [ \$count -ge 120 ]; do sleep 1; count=\$((count+1)); done; [ \$count -ge 120 ] && { echo \"Timeout waiting for Ollama\"; exit 1; }; ollama pull qwen2.5:1.5b && ollama pull moondream" && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest ollama/ollama:latest docker-whisper:latest docker-llm_node:latest docker-nt_bridge:latest'
 else
   docker run --rm \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v "$REPO_ROOT:/repo:ro" \
     -v "$BUILD_DIR:/work:rw" \
     docker:latest \
-    sh -c 'cd /repo/docker && docker compose build && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest'
+    sh -c 'cd /repo/docker && docker compose build && docker compose --profile frc build && docker save -o /work/docker_images.tar docker-ros2_rosbridge:latest docker-nt_bridge:latest'
 fi
 
 # --- Run privileged container ---
