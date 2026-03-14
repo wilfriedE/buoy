@@ -14,6 +14,9 @@ const app = express();
 const PORT = process.env.COMMAND_CENTER_PORT || 8080;
 const BUOY_ROOT = process.env.BUOY_ROOT || '/opt/buoy';
 const WIFI_CONFIG_PATH = path.join(BUOY_ROOT, 'config', 'wifi.json');
+const NT_BRIDGE_CONFIG_PATH = path.join(BUOY_ROOT, 'config', 'nt_bridge.json');
+const FEATURES_CONFIG_PATH = path.join(BUOY_ROOT, 'config', 'features.json');
+const DOCKER_COMPOSE_DIR = path.join(BUOY_ROOT, 'docker');
 const GENERATE_HOSTAPD_SCRIPT = path.join(BUOY_ROOT, 'config', 'generate-hostapd-conf.py');
 
 // DHCP leases path (dnsmasq)
@@ -21,6 +24,7 @@ const LEASES_PATH = process.env.DHCP_LEASES_PATH || '/var/lib/misc/dnsmasq.lease
 
 // Proxy /api/llm to Ollama – must be before body parsers so we can stream
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
+const NT_BRIDGE_STATUS_URL = process.env.NT_BRIDGE_STATUS_URL || 'http://127.0.0.1:9091';
 
 // LLM status check (before proxy so we can short-circuit)
 app.get('/api/llm/status', (req, res) => {
@@ -287,6 +291,125 @@ app.post('/api/wifi', (req, res) => {
   } catch (err) {
     console.error('Error updating WiFi:', err.message);
     res.status(500).json({ error: 'Failed to update WiFi: ' + err.message });
+  }
+});
+
+// API: NT bridge config (GET current, POST to update)
+app.get('/api/nt-bridge', (req, res) => {
+  try {
+    if (fs.existsSync(NT_BRIDGE_CONFIG_PATH)) {
+      const data = JSON.parse(fs.readFileSync(NT_BRIDGE_CONFIG_PATH, 'utf8'));
+      res.json(data);
+    } else {
+      res.json({ robots: [] });
+    }
+  } catch (err) {
+    console.error('Error reading NT bridge config:', err.message);
+    res.status(500).json({ error: 'Failed to read config' });
+  }
+});
+
+app.post('/api/nt-bridge', (req, res) => {
+  const body = req.body || {};
+  const robots = Array.isArray(body.robots) ? body.robots : [];
+  try {
+    const configDir = path.dirname(NT_BRIDGE_CONFIG_PATH);
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+    let data = {};
+    if (fs.existsSync(NT_BRIDGE_CONFIG_PATH)) {
+      try {
+        data = JSON.parse(fs.readFileSync(NT_BRIDGE_CONFIG_PATH, 'utf8'));
+      } catch {}
+    }
+    data.robots = robots;
+    fs.writeFileSync(NT_BRIDGE_CONFIG_PATH, JSON.stringify(data, null, 2), 'utf8');
+    res.json({ success: true, robots });
+  } catch (err) {
+    console.error('Error updating NT bridge config:', err.message);
+    res.status(500).json({ error: 'Failed to update config' });
+  }
+});
+
+// API: NT bridge status (proxy to bridge HTTP server)
+app.get('/api/nt-bridge/status', (req, res) => {
+  try {
+    const u = new URL('/status', NT_BRIDGE_STATUS_URL);
+    const opts = { hostname: u.hostname, port: u.port || 80, path: u.pathname, method: 'GET' };
+    const statusReq = http.request(opts, (statusRes) => {
+      let body = '';
+      statusRes.on('data', (chunk) => { body += chunk; });
+      statusRes.on('end', () => {
+        try {
+          res.json(JSON.parse(body));
+        } catch {
+          res.json({ robots: [] });
+        }
+      });
+    });
+    statusReq.on('error', () => res.json({ robots: [] }));
+    statusReq.setTimeout(3000, () => { statusReq.destroy(); res.json({ robots: [] }); });
+    statusReq.end();
+  } catch (err) {
+    console.error('NT bridge status error:', err.message);
+    res.json({ robots: [] });
+  }
+});
+
+// API: features (GET current, POST to update)
+app.get('/api/features', (req, res) => {
+  try {
+    if (fs.existsSync(FEATURES_CONFIG_PATH)) {
+      const data = JSON.parse(fs.readFileSync(FEATURES_CONFIG_PATH, 'utf8'));
+      res.json(data);
+    } else {
+      res.json({ frc: false });
+    }
+  } catch (err) {
+    console.error('Error reading features:', err.message);
+    res.status(500).json({ error: 'Failed to read features' });
+  }
+});
+
+app.post('/api/features', (req, res) => {
+  const { frc } = req.body || {};
+  const frcEnabled = frc === true;
+  try {
+    const configDir = path.dirname(FEATURES_CONFIG_PATH);
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+    const data = { frc: frcEnabled };
+    fs.writeFileSync(FEATURES_CONFIG_PATH, JSON.stringify(data, null, 2), 'utf8');
+    if (fs.existsSync(DOCKER_COMPOSE_DIR)) {
+      if (frcEnabled) {
+        execSync('docker compose --profile frc up -d nt_bridge', { cwd: DOCKER_COMPOSE_DIR, stdio: 'pipe' });
+      } else {
+        execSync('docker compose --profile frc stop nt_bridge', { cwd: DOCKER_COMPOSE_DIR, stdio: 'pipe' });
+      }
+    }
+    res.json({ success: true, frc: frcEnabled });
+  } catch (err) {
+    console.error('Error updating features:', err.message);
+    res.status(500).json({ error: 'Failed to update features' });
+  }
+});
+
+// API: reboot device
+app.post('/api/reboot', (req, res) => {
+  try {
+    res.json({ success: true, message: 'Rebooting...' });
+    setTimeout(() => {
+      try {
+        execSync('sudo reboot', { stdio: 'ignore' });
+      } catch (e) {
+        console.error('Reboot exec failed:', e.message);
+      }
+    }, 500);
+  } catch (err) {
+    console.error('Reboot error:', err.message);
+    res.status(500).json({ error: 'Failed to reboot' });
   }
 });
 

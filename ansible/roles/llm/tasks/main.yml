@@ -27,3 +27,26 @@
   when:
     - llm_enable | default(false) | bool
     - not docker_image_build | default(false) | bool
+
+- name: Wait for Ollama to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:11434/api/tags"
+    method: GET
+    status_code: 200
+  register: ollama_ready
+  until: ollama_ready.status == 200
+  retries: 30
+  delay: 2
+  when:
+    - llm_enable | default(false) | bool
+    - not docker_image_build | default(false) | bool
+
+- name: Pull Ollama models (qwen2.5:1.5b, moondream)
+  ansible.builtin.command:
+    cmd: "docker exec docker-ollama-1 ollama pull {{ item }}"
+  loop:
+    - "{{ llm_model }}"
+    - "{{ llm_vision_model | default('moondream') }}"
+  when:
+    - llm_enable | default(false) | bool
+    - not docker_image_build | default(false) | bool

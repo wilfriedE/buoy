@@ -30,30 +30,34 @@ Get your first program running in about 5 minutes. You can use **Python** or **J
    ```python
    #!/usr/bin/env python3
    """Subscribe to Twist from the Buoy hub. Run: python3 twist_listener.py"""
+   import time
    from roslibpy import Ros, Topic
 
-   HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
-   ros = Ros(HOST, 9090)
-   ros.run()
+   def main():
+       HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
+       ros = Ros(HOST, 9090)
+       ros.run()
 
-   def on_twist(msg):
-       linear_x = msg.get('linear', {}).get('x', 0)
-       angular_z = msg.get('angular', {}).get('z', 0)
-       print(f"Twist: linear.x={linear_x:.2f} angular.z={angular_z:.2f}")
+       def on_twist(msg):
+           linear_x = msg.get('linear', {}).get('x', 0)
+           angular_z = msg.get('angular', {}).get('z', 0)
+           print(f"Twist: linear.x={linear_x:.2f} angular.z={angular_z:.2f}")
 
-   listener = Topic(ros, '/cmd_vel/gamepad', 'geometry_msgs/msg/Twist')
-   listener.subscribe(on_twist)
-   print("Listening for Twist on /cmd_vel/gamepad. Move a joystick on the Gamepad page...")
-   print("Press Ctrl+C to stop.")
+       listener = Topic(ros, '/cmd_vel/gamepad', 'geometry_msgs/msg/Twist')
+       listener.subscribe(on_twist)
+       print("Listening for Twist on /cmd_vel/gamepad. Move a joystick on the Gamepad page...")
+       print("Press Ctrl+C to stop.")
 
-   try:
-       import time
-       while True:
-           time.sleep(0.1)
-   except KeyboardInterrupt:
-       pass
-   finally:
-       ros.terminate()
+       try:
+           while True:
+               time.sleep(0.1)
+       except KeyboardInterrupt:
+           pass
+       finally:
+           ros.terminate()
+
+   if __name__ == '__main__':
+       main()
    ```
    Run: `python3 twist_listener.py`
 
@@ -178,29 +182,33 @@ Follow these stages to build skills step by step:
 ```python
 #!/usr/bin/env python3
 """Pi Zero: Subscribe to Twist from Buoy. Run: python3 twist_listener.py"""
+import time
 from roslibpy import Ros, Topic
 
-HOST = 'buoy.buoy'  # or '10.3.141.1' if buoy.buoy doesn't resolve
-ros = Ros(HOST, 9090)
-ros.run()
+def main():
+    HOST = 'buoy.buoy'  # or '10.3.141.1' if buoy.buoy doesn't resolve
+    ros = Ros(HOST, 9090)
+    ros.run()
 
-def on_twist(msg):
-    linear_x = msg.get('linear', {}).get('x', 0)
-    angular_z = msg.get('angular', {}).get('z', 0)
-    print(f"linear.x={linear_x:.2f} angular.z={angular_z:.2f}")
+    def on_twist(msg):
+        linear_x = msg.get('linear', {}).get('x', 0)
+        angular_z = msg.get('angular', {}).get('z', 0)
+        print(f"linear.x={linear_x:.2f} angular.z={angular_z:.2f}")
 
-listener = Topic(ros, '/cmd_vel/gamepad', 'geometry_msgs/msg/Twist')
-listener.subscribe(on_twist)
-print("Listening on /cmd_vel/gamepad. Press Ctrl+C to stop.")
+    listener = Topic(ros, '/cmd_vel/gamepad', 'geometry_msgs/msg/Twist')
+    listener.subscribe(on_twist)
+    print("Listening on /cmd_vel/gamepad. Press Ctrl+C to stop.")
 
-try:
-    import time
-    while True:
-        time.sleep(0.1)
-except KeyboardInterrupt:
-    pass
-finally:
-    ros.terminate()
+    try:
+        while True:
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        ros.terminate()
+
+if __name__ == '__main__':
+    main()
 ```
 
 ---
@@ -340,24 +348,28 @@ Use these templates as a starting point. Prefer **rosbridge** if your device doe
 :::code-tabs
 **Python**
 ```python
+import time
 from roslibpy import Ros, Topic
 
-HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
-ros = Ros(HOST, 9090)
-ros.run()
+def main():
+    HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
+    ros = Ros(HOST, 9090)
+    ros.run()
 
-def on_twist(msg):
-    print(msg)
+    def on_twist(msg):
+        print(msg)
 
-listener = Topic(ros, '/cmd_vel/gamepad', 'geometry_msgs/msg/Twist')
-listener.subscribe(on_twist)
+    listener = Topic(ros, '/cmd_vel/gamepad', 'geometry_msgs/msg/Twist')
+    listener.subscribe(on_twist)
 
-import time
-try:
-    while True:
-        time.sleep(0.1)
-finally:
-    ros.terminate()
+    try:
+        while True:
+            time.sleep(0.1)
+    finally:
+        ros.terminate()
+
+if __name__ == '__main__':
+    main()
 ```
 **JavaScript**
 ```javascript
@@ -405,29 +417,33 @@ rclpy.shutdown()
 ```python
 #!/usr/bin/env python3
 """Publish Twist to Buoy via rosbridge. Run: python3 twist_publisher.py"""
-from roslibpy import Ros, Topic
 import time
+from roslibpy import Ros, Topic
 
-HOST = 'buoy.buoy'  # or '10.3.141.1' if DNS fails
-ros = Ros(HOST, 9090)
-ros.run()
+def main():
+    HOST = 'buoy.buoy'  # or '10.3.141.1' if DNS fails
+    ros = Ros(HOST, 9090)
+    ros.run()
 
-pub = Topic(ros, '/cmd_vel/my_robot', 'geometry_msgs/msg/Twist')
-pub.advertise()
+    pub = Topic(ros, '/cmd_vel/my_robot', 'geometry_msgs/msg/Twist')
+    pub.advertise()
 
-def make_twist(linear_x=0, angular_z=0):
-    return {'linear': {'x': linear_x, 'y': 0, 'z': 0}, 'angular': {'x': 0, 'y': 0, 'z': angular_z}}
+    def make_twist(linear_x=0, angular_z=0):
+        return {'linear': {'x': linear_x, 'y': 0, 'z': 0}, 'angular': {'x': 0, 'y': 0, 'z': angular_z}}
 
-print("Publishing Twist to /cmd_vel/my_robot. Open Turtle Draw and select this topic.")
-print("Press Ctrl+C to stop.")
-try:
-    while True:
-        pub.publish(make_twist(0.3, 0))  # drive forward
-        time.sleep(0.1)
-except KeyboardInterrupt:
-    pub.publish(make_twist(0, 0))  # stop before exit
-finally:
-    ros.terminate()
+    print("Publishing Twist to /cmd_vel/my_robot. Open Turtle Draw and select this topic.")
+    print("Press Ctrl+C to stop.")
+    try:
+        while True:
+            pub.publish(make_twist(0.3, 0))  # drive forward
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        pub.publish(make_twist(0, 0))  # stop before exit
+    finally:
+        ros.terminate()
+
+if __name__ == '__main__':
+    main()
 ```
 **JavaScript**
 ```javascript
@@ -461,9 +477,13 @@ class TwistPublisher(Node):
         msg.linear.x = 0.5
         self.pub.publish(msg)
 
-rclpy.init()
-rclpy.spin(TwistPublisher())
-rclpy.shutdown()
+def main():
+    rclpy.init()
+    rclpy.spin(TwistPublisher())
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
 ```
 
 ### Subscribe to string (chatter)
@@ -473,24 +493,28 @@ rclpy.shutdown()
 :::code-tabs
 **Python**
 ```python
+import time
 from roslibpy import Ros, Topic
 
-HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
-ros = Ros(HOST, 9090)
-ros.run()
+def main():
+    HOST = 'buoy.buoy'  # or '10.3.141.1' if hostname doesn't resolve
+    ros = Ros(HOST, 9090)
+    ros.run()
 
-def on_string(msg):
-    print("Heard:", msg.get('data', ''))
+    def on_string(msg):
+        print("Heard:", msg.get('data', ''))
 
-listener = Topic(ros, '/chatter', 'std_msgs/msg/String')
-listener.subscribe(on_string)
+    listener = Topic(ros, '/chatter', 'std_msgs/msg/String')
+    listener.subscribe(on_string)
 
-import time
-try:
-    while True:
-        time.sleep(0.1)
-finally:
-    ros.terminate()
+    try:
+        while True:
+            time.sleep(0.1)
+    finally:
+        ros.terminate()
+
+if __name__ == '__main__':
+    main()
 ```
 **JavaScript**
 ```javascript
@@ -519,9 +543,13 @@ class StringListener(Node):
     def callback(self, msg):
         self.get_logger().info(f'Heard: "{msg.data}"')
 
-rclpy.init()
-rclpy.spin(StringListener())
-rclpy.shutdown()
+def main():
+    rclpy.init()
+    rclpy.spin(StringListener())
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
 ```
 
 ---

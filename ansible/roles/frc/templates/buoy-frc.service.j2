@@ -1,0 +1,14 @@
+[Unit]
+Description=Buoy FRC NetworkTables bridge (starts if frc enabled in features.json)
+After=buoy-ros.service docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart={{ buoy_root }}/docker/start-frc-bridge.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

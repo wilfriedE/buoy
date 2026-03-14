@@ -1,0 +1,19 @@
+# Buoy NT bridge – ROS 2 + pyntcore (NT4 client) for FRC
+FROM ros:jazzy-ros-base
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-pip \
+    ros-jazzy-rclpy \
+    ros-jazzy-geometry-msgs \
+    ros-jazzy-std-msgs \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY nt_bridge/requirements.txt /app/
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
+
+COPY nt_bridge/bridge.py /app/
+COPY nt_bridge/entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]

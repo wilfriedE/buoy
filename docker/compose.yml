@@ -54,3 +54,19 @@ services:
       - ollama
     profiles:
       - llm
+
+  nt_bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.nt_bridge
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    network_mode: host
+    environment:
+      ROS_DOMAIN_ID: "${ROS_DOMAIN_ID:-0}"
+      BUOY_ROOT: "${BUOY_ROOT:-/opt/buoy}"
+      NT_BRIDGE_STATUS_PORT: "9091"
+    volumes:
+      - ${BUOY_ROOT:-/opt/buoy}/config:/opt/buoy/config:ro
+    restart: unless-stopped
+    profiles:
+      - frc

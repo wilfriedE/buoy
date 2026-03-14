@@ -15,6 +15,7 @@
       when: wifi_ap_enable | default(true) | bool
     - ros2_docker
     - llm
+    - frc
     - command_center
     - role: captive_portal
       when: wifi_ap_enable | default(true) | bool and captive_portal_enable | default(false) | bool

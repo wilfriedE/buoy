@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features – Buoy</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="stylesheet" href="/dist/tailwind.css" />
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-200">
+  <nav class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/logo.svg" alt="Buoy" class="w-8 h-8" />
+          <span class="text-lg font-semibold text-white">Features</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Dashboard</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">ROS <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/ros-try.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Listen & Publish</a>
+              <a href="/gamepad.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gamepad & Joysticks</a>
+              <a href="/networktables.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">NetworkTables (FRC)</a>
+              <a href="/ros-graph.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">Topic Graph</a>
+            </div>
+          </div>
+        </div>
+        <a href="/networktables.html" class="nav-link text-sm text-slate-300 hover:text-sky-300">NetworkTables</a>
+        <a href="/sandbox/" class="nav-link text-sm text-slate-300 hover:text-sky-300">Sandbox</a>
+        <div class="relative nav-dropdown">
+          <button type="button" class="nav-link text-sm text-slate-300 hover:text-sky-300 cursor-pointer inline-flex items-center gap-0.5 bg-transparent border-none p-0 font-inherit">Docs <span class="text-xs opacity-75">▾</span></button>
+          <div class="absolute left-0 top-full pt-1 hidden nav-dropdown-menu z-50">
+            <div class="py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl min-w-[180px]">
+              <a href="/docs/connect-your-device.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-lg">Connect your device</a>
+              <a href="/docs/ros-hub.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">ROS hub</a>
+              <a href="/docs/install-linux.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Install on Linux</a>
+              <a href="/docs/llm-buoy.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">LLM</a>
+              <a href="/docs/networktables-frc.md" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-lg">NetworkTables (FRC)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <p class="text-slate-300 mb-6">Enable or disable optional features. Changes take effect immediately. After a reboot, FRC will start automatically if enabled.</p>
+
+    <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6 space-y-6">
+      <h2 class="text-sm font-semibold text-sky-300 uppercase tracking-wider">Optional features</h2>
+
+      <div class="flex items-center justify-between gap-4 py-4 border-b border-slate-700/50">
+        <div>
+          <p class="font-medium text-white">FRC (NetworkTables)</p>
+          <p class="text-sm text-slate-400 mt-0.5">Bridge to FRC robots via NetworkTables. Connect to RoboRIO and exchange ROS↔NT data.</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="frc-toggle" class="sr-only peer">
+          <div class="w-11 h-6 bg-slate-600 peer-focus:ring-4 peer-focus:ring-sky-500/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+          <span class="ms-3 text-sm text-slate-300">On / Off</span>
+        </label>
+      </div>
+
+      <div class="pt-4">
+        <h3 class="text-sm font-semibold text-slate-300 mb-3">System</h3>
+        <button id="reboot-btn" type="button" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium">
+          Reboot device
+        </button>
+        <p class="text-xs text-slate-500 mt-2">Reboot the Buoy. FRC bridge will start on boot if enabled above.</p>
+      </div>
+    </div>
+
+    <div id="status-msg" class="mt-4 text-sm hidden"></div>
+  </main>
+
+  <script>
+    (function() {
+      const frcToggle = document.getElementById('frc-toggle');
+      const rebootBtn = document.getElementById('reboot-btn');
+      const statusMsg = document.getElementById('status-msg');
+
+      function showStatus(text, isError) {
+        statusMsg.textContent = text;
+        statusMsg.className = 'mt-4 text-sm ' + (isError ? 'text-red-300' : 'text-emerald-300');
+        statusMsg.classList.remove('hidden');
+      }
+
+      function loadFeatures() {
+        fetch('/api/features')
+          .then(r => r.json())
+          .then(data => {
+            frcToggle.checked = data.frc === true;
+          })
+          .catch(() => showStatus('Failed to load features', true));
+      }
+
+      frcToggle.addEventListener('change', function() {
+        const enabled = frcToggle.checked;
+        fetch('/api/features', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ frc: enabled })
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data.error) throw new Error(data.error);
+            showStatus(enabled ? 'FRC enabled. NT bridge started.' : 'FRC disabled. NT bridge stopped.');
+          })
+          .catch(err => {
+            showStatus(err.message || 'Failed to update', true);
+            frcToggle.checked = !enabled;
+          });
+      });
+
+      rebootBtn.addEventListener('click', function() {
+        if (!confirm('Reboot the device now? It may take a minute to come back online.')) return;
+        rebootBtn.disabled = true;
+        fetch('/api/reboot', { method: 'POST' })
+          .then(r => r.json())
+          .then(data => {
+            if (data.error) throw new Error(data.error);
+            showStatus('Rebooting...');
+          })
+          .catch(err => {
+            showStatus(err.message || 'Reboot failed', true);
+            rebootBtn.disabled = false;
+          });
+      });
+
+      loadFeatures();
+    })();
+  </script>
+</body>
+</html>
